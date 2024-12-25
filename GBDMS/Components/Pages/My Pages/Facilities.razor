@@ -1,0 +1,59 @@
+﻿@page "/test"
+
+@{
+    <title>Disaster Management  System</title>
+
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disaster Management System</title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <h1>Disaster Management  System</h1>
+        <p>GBDMS, Kpk, Pakistan</p>
+    </header>
+
+    <nav class="nav-buttons text-center">
+        <button class="btn btn-primary active">Weather Data</button>
+        <button class="btn btn-secondary">Current Weather</button>
+    </nav>
+
+    <main class="container my-4">
+        <div class="row g-4">
+            @foreach (var card in new[]
+            {
+            new { Img = "https://storage.googleapis.com/a1aa/image/u8Axf4VCkxxVZibeE0qlUxhOh124Rd5ruIoenYpf3sOtqF3PB.jpg", Title = " Hazard and Risk Atlas" },
+            new { Img = "https://storage.googleapis.com/a1aa/image/Ualu3aidj3IyBdZRL46PmD7T7mgvrOsKZ1eE3vfmcdS0ax9TA.jpg", Title = " GIS" },
+            new { Img = "https://storage.googleapis.com/a1aa/image/wP9KKSDlizp1INjyNsvSgRIvwr1XXb3AGBRf3UYKQeQtax9TA.jpg", Title = "Disaster Warning and Information" },
+            new { Img = "https://storage.googleapis.com/a1aa/image/rf4jkSurqOXkAiKcK3sqROCBzm9j3RhKpZjC6IAxq98Yt4eTA.jpg", Title = "Weather Forecast" },
+            new { Img = "https://storage.googleapis.com/a1aa/image/SqDeqKrfsYqjmU0d2CCDzacgUyKHfKr8I7wz6Ufwz9EarF3PB.jpg", Title = "Store Inventory and Relief Distribution" },
+            new { Img = "https://storage.googleapis.com/a1aa/image/8EMKOxzE0SqtDl34rUPq6E3Hb8mcCfsbkPUoZip0GY2Xt4eTA.jpg", Title = "Rapid Damage Assessment" },
+            new { Img = "https://storage.googleapis.com/a1aa/image/Yw1fX2GECJ0zaierMsBJtOMpQV7WtAPLE6glJv30Bm95ax9TA.jpg", Title = "Rapid Response and Rescue Coordination" },
+            new { Img = "https://storage.googleapis.com/a1aa/image/eDFvhBRBfHjFwEqhryCinhUFCgrPlBepA31TOgQpgyH21i7nA.jpg", Title = "Vehicle Tracking" },
+            new { Img = "https://storage.googleapis.com/a1aa/image/23lfpsAz86wfbU9Lh2Tpg0aJtVkNceMXgysT7QPc769k1i7nA.jpg", Title = "Damages & Losses" },
+            new { Img = "https://storage.googleapis.com/a1aa/image/RFwAAfNxHazJVixgVfCbdZrpWqWis6VBbU9Z0mqbykV4ax9TA.jpg", Title = "NGO Mapping" }
+            })
+            {
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                    <div class="card h-100 shadow-sm">
+                        <img src="@card.Img" class="card-img-top" alt="@card.Title">
+                        <div class="card-body">
+                            <p class="card-text">@card.Title</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

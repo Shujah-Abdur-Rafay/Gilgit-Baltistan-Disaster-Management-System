@@ -1,0 +1,38 @@
+﻿body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #f8f8f8;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+    header h1 {
+        margin: 0;
+        font-size: 1.5rem;
+    }
+
+    header p {
+        margin: 5px 0 0;
+        font-size: 0.875rem;
+        color: #666;
+    }
+
+section.bg-primary {
+    background-color: #007bff !important;
+}
+
+    section.bg-primary h2 {
+        margin: 0;
+        font-size: 1.25rem;
+    }
+
+main.container p {
+    margin-bottom: 1rem;
+    text-align: justify;
+}

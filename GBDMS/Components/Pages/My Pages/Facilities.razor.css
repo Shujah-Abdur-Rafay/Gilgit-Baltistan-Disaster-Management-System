@@ -1,0 +1,33 @@
+﻿/* Header styles */
+.header {
+    background-color: #fff;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+    .header h1 {
+        margin: 0;
+        font-size: 24px;
+    }
+
+    .header p {
+        margin: 5px 0 0;
+        font-size: 14px;
+        color: #666;
+    }
+
+/* Navigation styles */
+.nav-buttons {
+    background-color: #003366;
+    padding: 10px;
+}
+
+    .nav-buttons .btn {
+        margin: 0 5px;
+    }
+
+/* Card styles */
+.card img {
+    object-fit: cover;
+}
