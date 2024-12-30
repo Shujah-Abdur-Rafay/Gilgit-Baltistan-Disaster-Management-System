@@ -18,15 +18,19 @@
     }
 
 /* Navigation styles */
+
 .nav-buttons {
-    background-color: #003366;
+    background-color: #228B22; 
     padding: 10px;
 }
 
-    .nav-buttons .btn {
-        margin: 0 5px;
-    }
+/* Navigation styles */
+.nav-buttons {
+    background-color: #228B22; 
+    padding: 10px;
+}
 
+    
 /* Card styles */
 .card img {
     object-fit: cover;

@@ -1,4 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
+using GBDMS.Data;
+using GBDMS.Repository;
+using GBDMS.Repository.IRepository;
 
 namespace GBDMS
 {
@@ -16,8 +19,12 @@ namespace GBDMS
 
             builder.Services.AddMauiBlazorWebView();
 
+            // Register database and repository services
+            builder.Services.AddSingleton<LocalDbService>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 #if DEBUG
-    		builder.Services.AddBlazorWebViewDeveloperTools();
+            builder.Services.AddBlazorWebViewDeveloperTools();
     		builder.Logging.AddDebug();
 #endif
 

@@ -6,7 +6,7 @@
 }
 
 header {
-    background-color: #f8f8f8;
+    background-color: #228B22;
     padding: 20px;
     text-align: center;
     border-bottom: 1px solid #ddd;
@@ -24,7 +24,7 @@ header {
     }
 
 section.bg-primary {
-    background-color: #007bff !important;
+    background-color: #228B22 !important; /* Forest Green color */
 }
 
     section.bg-primary h2 {

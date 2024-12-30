@@ -1,48 +1,55 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿<head>
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<div class="top-row ps-3 navbar navbar-dark" style="background-color: forestgreen; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">GBDMS</a>
+        <a class="navbar-brand" href="/">GBDMS</a>
     </div>
 </div>
 
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()" style="background-color: forestgreen;">
     <nav class="flex-column">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="test">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Facilities
+            <NavLink class="nav-link d-flex align-items-center" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill mb-4" aria-hidden="true"></span> Home
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="mypage">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Survival Guidelines
+            <NavLink class="nav-link d-flex align-items-center" href="test">
+                <span class="bi bi-building mb-4" aria-hidden="true"></span> Services
             </NavLink>
         </div>
 
+        <div class="nav-item px-3">
+            <NavLink class="nav-link d-flex align-items-center" href="videos">
+                <span class="bi bi-play-btn mb-4" aria-hidden="true"></span> Survival Guidelines
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link d-flex align-items-center" href="about">
+                <span class="bi bi-info-circle mb-4" aria-hidden="true"></span> About
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link d-flex align-items-center" href="contact">
+                <span class="bi bi-envelope mb-4" aria-hidden="true"></span> Contact Us
+            </NavLink>
+        </div>
 
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="about">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> About
+            <NavLink class="nav-link d-flex align-items-center" href="login">
+                <span class="bi bi-box-arrow-in-right mb-4" aria-hidden="true"></span> Login / SignUp
             </NavLink>
         </div>
-
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="contact">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Contact Us
-            </NavLink>
-        </div>
-
-
-
     </nav>
 </div>

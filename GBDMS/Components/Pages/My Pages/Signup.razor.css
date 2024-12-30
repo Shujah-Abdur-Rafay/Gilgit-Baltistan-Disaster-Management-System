@@ -1,0 +1,92 @@
+﻿body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: #228B22;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 400px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin-top: 100px;
+}
+
+.auth-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #228B22;
+    margin-bottom: 10px;
+}
+
+.auth-subtitle {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+    .form-group label {
+        font-size: 14px;
+        color: #333;
+    }
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.btn {
+    width: 100%;
+    padding: 10px;
+    background: #228B22;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+    .btn:hover {
+        background: #1c731c;
+    }
+
+.auth-footer {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #666;
+}
+
+.signup-link {
+    color: #228B22;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+    .signup-link:hover {
+        text-decoration: underline;
+    }
