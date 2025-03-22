@@ -1,7 +1,5 @@
 ﻿@page "/riskatlas"
-
 @inject IJSRuntime JS
-
 
 <h3>Advanced Spatial Analysis with Turf.js</h3>
 
@@ -19,6 +17,10 @@
     private double distance;
     private string bufferedGeoJSON = "";
     private int clusterCount;
+
+    public RiskAtlas()
+    {
+    }
 
     private async Task CalculateDistance()
     {
@@ -52,7 +54,6 @@
         if (firstRender)
         {
             await JS.InvokeVoidAsync("turfInterop.initializeMap", "map");
-
         }
     }
 }
