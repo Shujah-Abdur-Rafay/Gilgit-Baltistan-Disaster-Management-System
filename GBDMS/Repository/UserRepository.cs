@@ -8,7 +8,7 @@ namespace GBDMS.Repository
 {
     public class UserRepository : IUserRepository
     {
-        private readonly LocalDbService _localDbService;
+       private readonly LocalDbService _localDbService;
 
         public UserRepository(LocalDbService localDbService)
         {
@@ -23,7 +23,7 @@ namespace GBDMS.Repository
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var obj = await _localDbService.GetConnection().FindAsync<User>(id);
+          var obj = await _localDbService.GetConnection().FindAsync<User>(id);
             if (obj == null) return false;
 
             await _localDbService.GetConnection().DeleteAsync(obj);
@@ -35,12 +35,12 @@ namespace GBDMS.Repository
             return await _localDbService.GetConnection().FindAsync<User>(id);
         }
 
-        public async Task<IEnumerable<User>> GetAllAsync()
+       public async Task<IEnumerable<User>> GetAllAsync()
         {
             return await _localDbService.GetConnection().Table<User>().ToListAsync();
         }
 
-        public async Task<User> UpdateAsync(User obj)
+       public async Task<User> UpdateAsync(User obj)
         {
             var objFromDb = await _localDbService.GetConnection().FindAsync<User>(obj.Id);
             if (objFromDb == null) return null;
@@ -49,7 +49,7 @@ namespace GBDMS.Repository
             objFromDb.Email = obj.Email;
             objFromDb.Password = obj.Password;
 
-            await _localDbService.GetConnection().UpdateAsync(objFromDb);
+           await _localDbService.GetConnection().UpdateAsync(objFromDb);
             return objFromDb;
         }
 
@@ -63,14 +63,14 @@ namespace GBDMS.Repository
         {
             return await _localDbService.GetConnection()
                 .Table<User>()
-                .Where(u => u.Username == username)
+               .Where(u => u.Username == username)
                 .ToListAsync();
         }
 
         public async Task<User> GetUserByEmailAsync(string email)
         {
             return await _localDbService.GetConnection()
-                .Table<User>()
+               .Table<User>()
                 .Where(u => u.Email == email)
                 .FirstOrDefaultAsync();
         }
@@ -82,7 +82,7 @@ namespace GBDMS.Repository
                 .Where(u => u.Email == email)
                 .FirstOrDefaultAsync();
 
-            if (user != null && BCrypt.Net.BCrypt.Verify(password, user.Password))
+           if (user != null && BCrypt.Net.BCrypt.Verify(password, user.Password))
             {
                 return user;
             }
@@ -91,3 +91,4 @@ namespace GBDMS.Repository
         }
     }
 }
+

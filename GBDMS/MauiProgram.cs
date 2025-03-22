@@ -2,6 +2,8 @@
 using GBDMS.Data;
 using GBDMS.Repository;
 using GBDMS.Repository.IRepository;
+using Microsoft.Extensions.Configuration;
+using System.Reflection;
 
 namespace GBDMS
 {
@@ -25,7 +27,7 @@ namespace GBDMS
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
 
             return builder.Build();
