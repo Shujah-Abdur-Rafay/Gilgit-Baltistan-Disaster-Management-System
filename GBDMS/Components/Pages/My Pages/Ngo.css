@@ -1,0 +1,80 @@
+﻿body {
+}
+/* NGO Mapping Styles */
+
+/* Map */
+.ngo-map {
+    height: 500px;
+    width: 100%;
+}
+
+/* NGO Stats */
+.stats-box {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 12px;
+    text-align: center;
+    border-left: 4px solid #6c757d;
+}
+
+    .stats-box.total {
+        border-left: 4px solid #0d6efd;
+    }
+
+.stats-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 4px;
+}
+
+.stats-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+    .stats-value.small {
+        font-size: 1rem;
+    }
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.stats-item {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 8px;
+    text-align: center;
+}
+
+/* Focus Areas Chart */
+.focus-areas-chart {
+    margin-top: 10px;
+}
+
+.focus-area-item {
+    margin-bottom: 10px;
+}
+
+.area-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    margin-bottom: 3px;
+}
+
+.focus-areas-checkboxes {
+    max-height: 120px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 8px;
+}
+
+/* Map Markers */
+.ngo-marker {
+    text-align: center;
+    background-color: white;
+    border-radius: 

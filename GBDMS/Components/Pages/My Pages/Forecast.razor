@@ -1,0 +1,711 @@
+﻿@page "/forecast"
+@inject IJSRuntime JS
+
+<div class="container-fluid">
+    <h2 class="mb-4">Weather Forecast for Gilgit-Baltistan</h2>
+
+    <div class="row">
+        <!-- Location Selection and Current Weather -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Location</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select District</label>
+                        <select class="form-select" @bind="selectedDistrict" @bind:after="LoadWeatherData">
+                            <option value="Gilgit">Gilgit</option>
+                            <option value="Skardu">Skardu</option>
+                            <option value="Hunza">Hunza</option>
+                            <option value="Astore">Astore</option>
+                            <option value="Ghanche">Ghanche</option>
+                            <option value="Ghizer">Ghizer</option>
+                            <option value="Nagar">Nagar</option>
+                            <option value="Shigar">Shigar</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Weather -->
+            <div class="card mt-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Current Weather</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h3>@selectedDistrict</h3>
+                    <div class="current-weather">
+                        <img src="@GetWeatherIconUrl(currentWeather.IconCode)" alt="@currentWeather.Description" class="weather-icon" />
+                        <div class="temp-container">
+                            <span class="temperature">@currentWeather.Temperature°C</span>
+                            <span class="feels-like">Feels like @currentWeather.FeelsLike°C</span>
+                        </div>
+                    </div>
+                    <p class="weather-description">@currentWeather.Description</p>
+                    <div class="weather-details mt-3">
+                        <div class="row g-0">
+                            <div class="col-6 border-end">
+                                <div class="detail-item">
+                                    <i class="bi bi-droplet-fill text-primary"></i>
+                                    <span>@currentWeather.Humidity%</span>
+                                </div>
+                                <div class="detail-label">Humidity</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="detail-item">
+                                    <i class="bi bi-wind text-info"></i>
+                                    <span>@currentWeather.WindSpeed km/h</span>
+                                </div>
+                                <div class="detail-label">Wind</div>
+                            </div>
+                        </div>
+                        <div class="row g-0 mt-3">
+                            <div class="col-6 border-end">
+                                <div class="detail-item">
+                                    <i class="bi bi-umbrella text-danger"></i>
+                                    <span>@currentWeather.Precipitation mm</span>
+                                </div>
+                                <div class="detail-label">Precipitation</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="detail-item">
+                                    <i class="bi bi-eye-fill text-secondary"></i>
+                                    <span>@currentWeather.Visibility km</span>
+                                </div>
+                                <div class="detail-label">Visibility</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <small class="text-muted">Last updated: @currentWeather.LastUpdated.ToString("HH:mm, dd MMM yyyy")</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather Alerts -->
+            <div class="card mt-3">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Weather Alerts</h5>
+                </div>
+                <div class="card-body">
+                    @if (weatherAlerts.Count > 0)
+                    {
+                        <div class="list-group">
+                            @foreach (var alert in weatherAlerts)
+                            {
+                                <div class="list-group-item list-group-item-@alert.Type.ToLower()">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">@alert.Title</h6>
+                                        <small>@alert.StartTime.ToString("dd MMM")</small>
+                                    </div>
+                                    <p class="mb-1">@alert.Description</p>
+                                    <small>Until @alert.EndTime.ToString("HH:mm, dd MMM")</small>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-success mb-0">
+                            <i class="bi bi-check-circle-fill me-2"></i>No weather alerts at this time
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Forecast and Map -->
+        <div class="col-md-8">
+            <!-- Forecast Tabs -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="forecastTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="daily-tab" data-bs-toggle="tab" data-bs-target="#daily" type="button" role="tab" aria-controls="daily" aria-selected="true">Daily</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="hourly-tab" data-bs-toggle="tab" data-bs-target="#hourly" type="button" role="tab" aria-controls="hourly" aria-selected="false">Hourly</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="forecastTabsContent">
+                        <!-- Daily Forecast -->
+                        <div class="tab-pane fade show active" id="daily" role="tabpanel" aria-labelledby="daily-tab">
+                            <div class="row">
+                                @foreach (var day in dailyForecast)
+                                {
+                                    <div class="col-md-3 mb-3">
+                                        <div class="forecast-card text-center">
+                                            <div class="forecast-day">@day.Date.ToString("ddd dd")</div>
+                                            <img src="@GetWeatherIconUrl(day.IconCode)" alt="@day.Description" class="forecast-icon" />
+                                            <div class="forecast-temp">
+                                                <span class="high">@day.MaxTemp°</span>
+                                                <span class="low">@day.MinTemp°</span>
+                                            </div>
+                                            <div class="forecast-desc">@day.Description</div>
+                                            <div class="forecast-detail">
+                                                <span><i class="bi bi-droplet-fill text-primary"></i> @day.Precipitation%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <!-- Hourly Forecast -->
+                        <div class="tab-pane fade" id="hourly" role="tabpanel" aria-labelledby="hourly-tab">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Weather</th>
+                                            <th>Temp</th>
+                                            <th>Precip</th>
+                                            <th>Wind</th>
+                                            <th>Humidity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var hour in hourlyForecast)
+                                        {
+                                            <tr>
+                                                <td>@hour.Time.ToString("HH:mm")</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <img src="@GetWeatherIconUrl(hour.IconCode)" alt="@hour.Description" class="hourly-icon me-2" />
+                                                        <span>@hour.Description</span>
+                                                    </div>
+                                                </td>
+                                                <td>@hour.Temperature°C</td>
+                                                <td>@hour.Precipitation mm</td>
+                                                <td>@hour.WindSpeed km/h</td>
+                                                <td>@hour.Humidity%</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather Map -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Weather Map</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="weatherMap" style="width: 100%; height: 400px;"></div>
+                </div>
+                <div class="card-footer">
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="mapType" id="mapTemp" autocomplete="off" checked @onclick="@(() => ChangeMapLayer("temperature"))">
+                        <label class="btn btn-outline-primary" for="mapTemp">Temperature</label>
+
+                        <input type="radio" class="btn-check" name="mapType" id="mapPrecip" autocomplete="off" @onclick="@(() => ChangeMapLayer("precipitation"))">
+                        <label class="btn btn-outline-primary" for="mapPrecip">Precipitation</label>
+
+                        <input type="radio" class="btn-check" name="mapType" id="mapWind" autocomplete="off" @onclick="@(() => ChangeMapLayer("wind"))">
+                        <label class="btn btn-outline-primary" for="mapWind">Wind</label>
+
+                        <input type="radio" class="btn-check" name="mapType" id="mapClouds" autocomplete="off" @onclick="@(() => ChangeMapLayer("clouds"))">
+                        <label class="btn btn-outline-primary" for="mapClouds">Clouds</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mountain Weather Advisory -->
+            <div class="card mt-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Mountain Weather Advisory</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-primary">
+                        <strong>Snow Level:</strong> @mountainWeather.SnowLevel meters
+                    </div>
+                    <div class="alert alert-info">
+                        <strong>Freezing Level:</strong> @mountainWeather.FreezingLevel meters
+                    </div>
+                    <div class="alert alert-warning">
+                        <strong>Avalanche Risk:</strong> <span class="badge bg-@GetAvalancheRiskClass(mountainWeather.AvalancheRisk)">@mountainWeather.AvalancheRisk</span>
+                    </div>
+                    <h6>Road Conditions:</h6>
+                    <ul class="list-group mb-3">
+                        @foreach (var road in mountainWeather.RoadConditions)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                @road.Name
+                                <span class="badge bg-@GetRoadConditionClass(road.Status)">@road.Status</span>
+                            </li>
+                        }
+                    </ul>
+                    <h6>Mountain Passes:</h6>
+                    <ul class="list-group">
+                        @foreach (var pass in mountainWeather.MountainPasses)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                @pass.Name
+                                <span class="badge bg-@GetRoadConditionClass(pass.Status)">@pass.Status</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string selectedDistrict = "Gilgit";
+    private CurrentWeather currentWeather = new();
+    private List<WeatherAlert> weatherAlerts = new();
+    private List<DailyForecast> dailyForecast = new();
+    private List<HourlyForecast> hourlyForecast = new();
+    private MountainWeatherAdvisory mountainWeather = new();
+    private string currentMapLayer = "temperature";
+    private bool isMapInitialized = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadWeatherData();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeWeatherMap();
+        }
+    }
+
+    private async Task LoadWeatherData()
+    {
+        // In a real app, this would fetch from a weather API
+        // Simulating data for now
+
+        // Generate current weather for selected district
+        var random = new Random();
+        var temp = GetTemperatureForDistrict(selectedDistrict);
+
+        currentWeather = new CurrentWeather
+            {
+                Temperature = temp,
+                FeelsLike = temp - random.Next(2, 5),
+                Description = GetWeatherDescription(temp),
+                IconCode = GetIconCodeForTemp(temp),
+                Humidity = random.Next(30, 85),
+                WindSpeed = random.Next(5, 20),
+                Precipitation = Math.Round(random.NextDouble() * 5, 1),
+                Visibility = random.Next(5, 15),
+                LastUpdated = DateTime.Now
+            };
+
+        // Generate daily forecast
+        dailyForecast.Clear();
+        for (int i = 0; i < 7; i++)
+        {
+            var dayTemp = GetTemperatureForDistrict(selectedDistrict) + random.Next(-5, 6);
+            dailyForecast.Add(new DailyForecast
+                {
+                    Date = DateTime.Now.AddDays(i),
+                    MaxTemp = dayTemp,
+                    MinTemp = dayTemp - random.Next(5, 10),
+                    Description = GetWeatherDescription(dayTemp),
+                    IconCode = GetIconCodeForTemp(dayTemp),
+                    Precipitation = random.Next(0, 80)
+                });
+        }
+
+        // Generate hourly forecast
+        hourlyForecast.Clear();
+        for (int i = 0; i < 24; i++)
+        {
+            var hourTemp = temp + GetTemperatureVariation(i);
+            hourlyForecast.Add(new HourlyForecast
+                {
+                    Time = DateTime.Now.AddHours(i),
+                    Temperature = (int)hourTemp,
+                    Description = GetWeatherDescription((int)hourTemp),
+                    IconCode = GetIconCodeForTemp((int)hourTemp),
+                    Precipitation = Math.Round(random.NextDouble() * 2, 1),
+                    WindSpeed = random.Next(5, 25),
+                    Humidity = random.Next(30, 90)
+                });
+        }
+
+        // Generate weather alerts
+        weatherAlerts.Clear();
+
+        // 30% chance of having a weather alert
+        if (random.Next(100) < 30)
+        {
+            var alertTypes = new[] { "warning", "danger", "info" };
+            var alertType = alertTypes[random.Next(alertTypes.Length)];
+            var alertTitle = alertType == "danger" ? "Heavy Snowfall Warning" :
+                             alertType == "warning" ? "Strong Wind Advisory" : "Rain Watch";
+
+            weatherAlerts.Add(new WeatherAlert
+                {
+                    Type = alertType,
+                    Title = alertTitle,
+                    Description = $"{alertTitle} in effect for {selectedDistrict} and surrounding areas.",
+                    StartTime = DateTime.Now,
+                    EndTime = DateTime.Now.AddHours(random.Next(6, 48))
+                });
+        }
+
+        // Generate mountain weather
+        mountainWeather = new MountainWeatherAdvisory
+            {
+                SnowLevel = random.Next(2500, 5000),
+                FreezingLevel = random.Next(3000, 5500),
+                AvalancheRisk = GetRandomAvalancheRisk(),
+                RoadConditions = new List<RoadCondition>
+            {
+                new RoadCondition { Name = "Karakoram Highway", Status = GetRandomRoadStatus() },
+                new RoadCondition { Name = "Gilgit-Skardu Road", Status = GetRandomRoadStatus() },
+                new RoadCondition { Name = "Jaglot-Skardu Road", Status = GetRandomRoadStatus() }
+            },
+                MountainPasses = new List<MountainPass>
+            {
+                new MountainPass { Name = "Khunjerab Pass (4,693m)", Status = GetRandomRoadStatus() },
+                new MountainPass { Name = "Babusar Pass (4,173m)", Status = GetRandomRoadStatus() },
+                new MountainPass { Name = "Deosai Plains (4,114m)", Status = GetRandomRoadStatus() }
+            }
+            };
+
+        // Instead of using firstRender (which is only available in OnAfterRenderAsync)
+        // Use a flag to check if the map is initialized
+        if (isMapInitialized)
+        {
+            await UpdateWeatherMap();
+        }
+    }
+
+    private async Task InitializeWeatherMap()
+    {
+        try
+        {
+            // Center on Gilgit-Baltistan region
+            await JS.InvokeVoidAsync("eval", @"
+                let map = L.map('weatherMap').setView([35.8884, 74.4584], 7);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+                // Add district boundaries
+                fetch('/data/gb-districts.geojson')
+                    .then(response => response.json())
+                    .then(data => {
+                        L.geoJSON(data, {
+                            style: {
+                                color: '#333',
+                                weight: 1,
+                                fillOpacity: 0.1
+                            },
+                            onEachFeature: (feature, layer) => {
+                                if (feature.properties && feature.properties.name) {
+                                    layer.bindPopup(feature.properties.name);
+                                }
+                            }
+                        }).addTo(map);
+                    })
+                    .catch(err => console.error('Error loading GeoJSON:', err));
+
+                window.weatherMap = map;
+
+                // Create layer groups for different weather data
+                window.weatherLayers = {
+                    temperature: L.layerGroup().addTo(map),
+                    precipitation: L.layerGroup(),
+                    wind: L.layerGroup(),
+                    clouds: L.layerGroup()
+                };
+            ");
+            
+            isMapInitialized = true;
+            await UpdateWeatherMap();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing weather map: {ex.Message}");
+        }
+    }
+
+    private async Task UpdateWeatherMap()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("eval", @"
+                // Clear all layers
+                Object.values(window.weatherLayers).forEach(layer => layer.clearLayers());
+
+                // Simulate weather data points
+                const districts = [
+                    { name: 'Gilgit', lat: 35.9212, lng: 74.3481, temp: " + GetTemperatureForDistrict("Gilgit") + @", precip: " + new Random().Next(0, 10) + @", wind: " + new Random().Next(5, 30) + @", clouds: " + new Random().Next(0, 100) + @" },
+                    { name: 'Skardu', lat: 35.2896, lng: 75.6372, temp: " + GetTemperatureForDistrict("Skardu") + @", precip: " + new Random().Next(0, 10) + @", wind: " + new Random().Next(5, 30) + @", clouds: " + new Random().Next(0, 100) + @" },
+                    { name: 'Hunza', lat: 36.3195, lng: 74.6472, temp: " + GetTemperatureForDistrict("Hunza") + @", precip: " + new Random().Next(0, 10) + @", wind: " + new Random().Next(5, 30) + @", clouds: " + new Random().Next(0, 100) + @" },
+                    { name: 'Astore', lat: 35.3665, lng: 74.8559, temp: " + GetTemperatureForDistrict("Astore") + @", precip: " + new Random().Next(0, 10) + @", wind: " + new Random().Next(5, 30) + @", clouds: " + new Random().Next(0, 100) + @" },
+                    { name: 'Ghanche', lat: 35.2939, lng: 76.7298, temp: " + GetTemperatureForDistrict("Ghanche") + @", precip: " + new Random().Next(0, 10) + @", wind: " + new Random().Next(5, 30) + @", clouds: " + new Random().Next(0, 100) + @" },
+                    { name: 'Ghizer', lat: 36.3022, lng: 73.3498, temp: " + GetTemperatureForDistrict("Ghizer") + @", precip: " + new Random().Next(0, 10) + @", wind: " + new Random().Next(5, 30) + @", clouds: " + new Random().Next(0, 100) + @" },
+                    { name: 'Nagar', lat: 36.2579, lng: 74.0799, temp: " + GetTemperatureForDistrict("Nagar") + @", precip: " + new Random().Next(0, 10) + @", wind: " + new Random().Next(5, 30) + @", clouds: " + new Random().Next(0, 100) + @" },
+                    { name: 'Shigar', lat: 35.4765, lng: 75.5420, temp: " + GetTemperatureForDistrict("Shigar") + @", precip: " + new Random().Next(0, 10) + @", wind: " + new Random().Next(5, 30) + @", clouds: " + new Random().Next(0, 100) + @" }
+                ];
+
+                // Add temperature layer
+                districts.forEach(d => {
+                    // Temperature marker with color based on temperature
+                    const tempColor = d.temp < 0 ? '#00bcd4' :
+                                    d.temp < 10 ? '#4caf50' :
+                                    d.temp < 20 ? '#ff9800' : '#f44336';
+
+                    const tempMarker = L.circleMarker([d.lat, d.lng], {
+                        radius: 15,
+                        color: tempColor,
+                        fillColor: tempColor,
+                        fillOpacity: 0.5
+                    }).bindPopup(`<b>${d.name}</b><br>${d.temp}°C`);
+
+                    window.weatherLayers.temperature.addLayer(tempMarker);
+
+                    // Precipitation marker
+                    const precipColor = d.precip < 1 ? '#ffffff' :
+                                      d.precip < 3 ? '#b3e5fc' :
+                                      d.precip < 6 ? '#039be5' : '#0277bd';
+
+                    const precipMarker = L.circleMarker([d.lat, d.lng], {
+                        radius: Math.max(5, d.precip * 2),
+                        color: precipColor,
+                        fillColor: precipColor,
+                        fillOpacity: 0.5
+                    }).bindPopup(`<b>${d.name}</b><br>${d.precip} mm`);
+
+                    window.weatherLayers.precipitation.addLayer(precipMarker);
+
+                    // Wind marker
+                    const windColor = d.wind < 10 ? '#b2dfdb' :
+                                    d.wind < 20 ? '#26a69a' :
+                                    d.wind < 30 ? '#ff9800' : '#f44336';
+
+                    const windMarker = L.circleMarker([d.lat, d.lng], {
+                        radius: Math.max(5, d.wind / 2),
+                        color: windColor,
+                        fillColor: windColor,
+                        fillOpacity: 0.5
+                    }).bindPopup(`<b>${d.name}</b><br>${d.wind} km/h`);
+
+                    window.weatherLayers.wind.addLayer(windMarker);
+
+                    // Cloud marker
+                    const cloudColor = d.clouds < 30 ? '#e3f2fd' :
+                                     d.clouds < 60 ? '#90caf9' :
+                                     d.clouds < 80 ? '#42a5f5' : '#1e88e5';
+
+                    const cloudMarker = L.circleMarker([d.lat, d.lng], {
+                        radius: Math.max(5, d.clouds / 10),
+                        color: cloudColor,
+                        fillColor: cloudColor,
+                        fillOpacity: 0.5
+                    }).bindPopup(`<b>${d.name}</b><br>${d.clouds}%`);
+
+                    window.weatherLayers.clouds.addLayer(cloudMarker);
+                });
+
+                // Show the selected layer
+                Object.keys(window.weatherLayers).forEach(key => {
+                    if (key === '" + currentMapLayer + @"') {
+                        if (!window.weatherMap.hasLayer(window.weatherLayers[key])) {
+                            window.weatherMap.addLayer(window.weatherLayers[key]);
+                        }
+                    } else {
+                        if (window.weatherMap.hasLayer(window.weatherLayers[key])) {
+                            window.weatherMap.removeLayer(window.weatherLayers[key]);
+                        }
+                    }
+                });
+            ");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating map: {ex.Message}");
+        }
+    }
+
+    private async Task ChangeMapLayer(string layer)
+    {
+        currentMapLayer = layer;
+        await UpdateWeatherMap();
+    }
+
+    private int GetTemperatureForDistrict(string district)
+    {
+        // Simulate realistic temperatures for Gilgit-Baltistan in different seasons
+        var month = DateTime.Now.Month;
+        var baseTemp = month switch
+        {
+            12 or 1 or 2 => -5, // Winter
+            3 or 4 => 8,       // Spring
+            5 or 6 or 7 or 8 => 25, // Summer
+            _ => 12            // Fall
+        };
+
+        // Adjust for elevation differences between districts
+        return district switch
+        {
+            "Gilgit" => baseTemp,
+            "Skardu" => baseTemp - 2,
+            "Hunza" => baseTemp - 3,
+            "Astore" => baseTemp - 1,
+            "Ghanche" => baseTemp - 4,
+            "Ghizer" => baseTemp - 1,
+            "Nagar" => baseTemp - 3,
+            "Shigar" => baseTemp - 2,
+            _ => baseTemp
+        };
+    }
+
+    private double GetTemperatureVariation(int hour)
+    {
+        // Simulate daily temperature pattern
+        if (hour < 6) return -2; // Early morning, coolest
+        if (hour < 12) return hour - 6; // Morning, warming up
+        if (hour < 17) return 4; // Afternoon, warmest
+        if (hour < 21) return 21 - hour; // Evening, cooling down
+        return -2; // Night, cool again
+    }
+
+    private string GetWeatherDescription(int temperature)
+    {
+        if (temperature < -5) return "Freezing";
+        if (temperature < 0) return "Very Cold";
+        if (temperature < 5) return "Cold";
+        if (temperature < 15) return "Cool";
+        if (temperature < 25) return "Mild";
+        if (temperature < 30) return "Warm";
+        return "Hot";
+    }
+
+    private string GetIconCodeForTemp(int temperature)
+    {
+        // Use weather icons based on temperature
+        var season = DateTime.Now.Month;
+
+        if (temperature < 0) return "13d"; // Snow
+        if (temperature < 5)
+        {
+            if (season is 12 or 1 or 2) return "13d"; // Snow in winter
+            return "09d"; // Rain in other seasons
+        }
+        if (temperature < 15) return "04d"; // Cloudy
+        if (temperature < 25) return "03d"; // Partly cloudy
+        return "01d"; // Clear/sunny
+    }
+
+    private string GetWeatherIconUrl(string iconCode)
+    {
+        return $"https://openweathermap.org/img/wn/{iconCode}@2x.png";
+    }
+
+    private string GetRandomAvalancheRisk()
+    {
+        var risks = new[] { "Low", "Moderate", "Considerable", "High", "Extreme" };
+        return risks[new Random().Next(risks.Length)];
+    }
+
+    private string GetRandomRoadStatus()
+    {
+        var statuses = new[] { "Open", "Caution", "Difficult", "Closed" };
+        return statuses[new Random().Next(statuses.Length)];
+    }
+
+    private string GetAvalancheRiskClass(string risk)
+    {
+        return risk switch
+        {
+            "Low" => "success",
+            "Moderate" => "info",
+            "Considerable" => "warning",
+            "High" => "danger",
+            "Extreme" => "dark",
+            _ => "secondary"
+        };
+    }
+
+    private string GetRoadConditionClass(string status)
+    {
+        return status switch
+        {
+            "Open" => "success",
+            "Caution" => "warning",
+            "Difficult" => "danger",
+            "Closed" => "dark",
+            _ => "secondary"
+        };
+    }
+
+    // Data models
+    private class CurrentWeather
+    {
+        public int Temperature { get; set; } = 0;
+        public int FeelsLike { get; set; } = 0;
+        public string Description { get; set; } = "Clear";
+        public string IconCode { get; set; } = "01d";
+        public int Humidity { get; set; } = 50;
+        public int WindSpeed { get; set; } = 10;
+        public double Precipitation { get; set; } = 0;
+        public int Visibility { get; set; } = 10;
+        public DateTime LastUpdated { get; set; } = DateTime.Now;
+    }
+
+    private class WeatherAlert
+    {
+        public string Type { get; set; } = "info";
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public DateTime StartTime { get; set; } = DateTime.Now;
+        public DateTime EndTime { get; set; } = DateTime.Now.AddHours(24);
+    }
+
+    private class DailyForecast
+    {
+        public DateTime Date { get; set; } = DateTime.Now;
+        public int MaxTemp { get; set; } = 0;
+        public int MinTemp { get; set; } = 0;
+        public string Description { get; set; } = "Clear";
+        public string IconCode { get; set; } = "01d";
+        public int Precipitation { get; set; } = 0;
+    }
+
+    private class HourlyForecast
+    {
+        public DateTime Time { get; set; } = DateTime.Now;
+        public int Temperature { get; set; } = 0;
+        public string Description { get; set; } = "Clear";
+        public string IconCode { get; set; } = "01d";
+        public double Precipitation { get; set; } = 0;
+        public int WindSpeed { get; set; } = 10;
+        public int Humidity { get; set; } = 50;
+    }
+
+    private class MountainWeatherAdvisory
+    {
+        public int SnowLevel { get; set; } = 3000;
+        public int FreezingLevel { get; set; } = 4000;
+        public string AvalancheRisk { get; set; } = "Low";
+        public List<RoadCondition> RoadConditions { get; set; } = new();
+        public List<MountainPass> MountainPasses { get; set; } = new();
+    }
+
+    private class RoadCondition
+    {
+        public string Name { get; set; } = "";
+        public string Status { get; set; } = "Open";
+    }
+
+    private class MountainPass
+    {
+        public string Name { get; set; } = "";
+        public string Status { get; set; } = "Open";
+    }
+}

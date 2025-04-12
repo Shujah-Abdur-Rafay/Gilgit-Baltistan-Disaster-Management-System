@@ -1,52 +1,1343 @@
 ﻿@page "/riskatlas"
 @inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.Components.Forms
 
-<h3>Advanced Spatial Analysis with Turf.js</h3>
-
-<p><strong>Distance:</strong> @distance km</p>
-<p><strong>Buffered Area GeoJSON:</strong> @bufferedGeoJSON</p>
-<p><strong>Cluster Count:</strong> @clusterCount</p>
-
-<button @onclick="CalculateDistance">Calculate Distance</button>
-<button @onclick="BufferRegion">Buffer Area</button>
-<button @onclick="ClusterPoints">Cluster Points</button>
-
-<div id="map" style="width: 100%; height: 500px;"></div>
+<div class="container-fluid">
+    <h2 class="mb-4">Hazard and Risk Atlas</h2>
+    
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <!-- Main Tools Panel -->
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Analysis Tools</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Analysis Type</label>
+                        <select class="form-select" @bind="selectedAnalysisType">
+                            <option value="distance">Distance Calculation</option>
+                            <option value="buffer">Buffer Analysis</option>
+                            <option value="clusters">Clustering</option>
+                            <option value="hazard">Hazard Risk Analysis</option>
+                            <option value="isolines">Isoline Generation</option>
+                            <option value="evacuation">Evacuation Routes</option>
+                            <option value="intersection">Intersection Analysis</option>
+                            <option value="multihazard">Multi-Hazard Risk</option>
+                            <option value="infrastructure">Infrastructure Analysis</option>
+                        </select>
+                    </div>
+                    
+                    @if (selectedAnalysisType == "distance")
+                    {
+                        <button class="btn btn-primary w-100" @onclick="CalculateDistance">Calculate Distance</button>
+                    }
+                    else if (selectedAnalysisType == "buffer")
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Buffer Radius (km)</label>
+                            <input type="number" class="form-control" @bind="bufferRadius" min="1" max="100" />
+                        </div>
+                        <button class="btn btn-primary w-100" @onclick="BufferRegion">Create Buffer</button>
+                    }
+                    else if (selectedAnalysisType == "clusters")
+                    {
+                        <button class="btn btn-primary w-100" @onclick="ClusterPoints">Analyze Clusters</button>
+                    }
+                    else if (selectedAnalysisType == "hazard")
+                    {
+                        <button class="btn btn-primary w-100" @onclick="AnalyzeHazardRisk">Analyze Hazard Risk</button>
+                    }
+                    else if (selectedAnalysisType == "isolines")
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Max Distance (km)</label>
+                            <input type="number" class="form-control" @bind="isolineMaxDistance" min="10" max="200" />
+                        </div>
+                        <button class="btn btn-primary w-100" @onclick="GenerateIsolines">Generate Isolines</button>
+                    }
+                    else if (selectedAnalysisType == "evacuation")
+                    {
+                        <button class="btn btn-primary w-100" @onclick="FindEvacuationRoutes">Find Safe Routes</button>
+                    }
+                    else if (selectedAnalysisType == "intersection")
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Layer 1</label>
+                            <select class="form-select" @bind="intersectionLayer1">
+                                <option value="Earthquake">Earthquake Zones</option>
+                                <option value="Landslide">Landslide Zones</option>
+                                <option value="Flood">Flood Zones</option>
+                                <option value="Snow Avalanche">Snow Avalanche Zones</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Layer 2</label>
+                            <select class="form-select" @bind="intersectionLayer2">
+                                <option value="Earthquake">Earthquake Zones</option>
+                                <option value="Landslide">Landslide Zones</option>
+                                <option value="Flood">Flood Zones</option>
+                                <option value="Snow Avalanche">Snow Avalanche Zones</option>
+                                <option value="CriticalInfrastructure">Critical Infrastructure</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary w-100" @onclick="PerformIntersectionAnalysis">Analyze Intersection</button>
+                    }
+                    else if (selectedAnalysisType == "multihazard")
+                    {
+                        <button class="btn btn-primary w-100" @onclick="AnalyzeMultiHazardRisk">Generate Risk Zones</button>
+                    }
+                    else if (selectedAnalysisType == "infrastructure")
+                    {
+                        <button class="btn btn-primary w-100" @onclick="AnalyzeCriticalInfrastructure">Analyze Infrastructure Risk</button>
+                    }
+                </div>
+            </div>
+            
+            <!-- Layer Control Panel -->
+            <div class="card mb-3">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Layer Control</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" @bind="showEarthquakeLayer" id="earthquakeLayer" />
+                        <label class="form-check-label" for="earthquakeLayer">Earthquake Zones</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" @bind="showLandslideLayer" id="landslideLayer" />
+                        <label class="form-check-label" for="landslideLayer">Landslide Zones</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" @bind="showFloodLayer" id="floodLayer" />
+                        <label class="form-check-label" for="floodLayer">Flood Zones</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" @bind="showSnowLayer" id="snowLayer" />
+                        <label class="form-check-label" for="snowLayer">Snow Avalanche Zones</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" @bind="showInfrastructureLayer" id="infrastructureLayer" />
+                        <label class="form-check-label" for="infrastructureLayer">Critical Infrastructure</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" @bind="showAdminBoundaries" id="adminLayer" />
+                        <label class="form-check-label" for="adminLayer">Administrative Boundaries</label>
+                    </div>
+                    <button class="btn btn-success w-100 mt-2" @onclick="UpdateMapLayers">Update Map</button>
+                </div>
+            </div>
+            
+            <!-- Data Upload Panel -->
+            <div class="card mb-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Data Upload</h5>
+                </div>
+                <div class="card-body">
+                    <InputFile OnChange="@OnFileUpload" class="form-control mb-3" accept=".geojson,.kml,.gpx" />
+                    <div class="mb-3">
+                        <label class="form-label">File Type</label>
+                        <select class="form-select" @bind="uploadFileType">
+                            <option value="geojson">GeoJSON</option>
+                            <option value="kml">KML</option>
+                            <option value="gpx">GPX</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Layer Name</label>
+                        <input type="text" class="form-control" @bind="uploadLayerName" placeholder="Custom Layer" />
+                    </div>
+                    @if (!string.IsNullOrEmpty(uploadErrorMessage))
+                    {
+                        <div class="alert alert-danger">@uploadErrorMessage</div>
+                    }
+                </div>
+            </div>
+            
+            <!-- Tools Panel -->
+            <div class="card mb-3">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Map Tools</h5>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-outline-dark w-100 mb-2" @onclick="DetectUserLocation">
+                        <i class="bi bi-geo-alt"></i> My Location
+                    </button>
+                    <div class="mb-3">
+                        <label class="form-label">Search Location</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" @bind="searchQuery" placeholder="City or coordinates" />
+                            <button class="btn btn-outline-secondary" @onclick="SearchLocation">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-dark w-100 mb-2" @onclick="ExportToPDF">
+                        <i class="bi bi-file-earmark-pdf"></i> Export to PDF
+                    </button>
+                    <button class="btn btn-outline-dark w-100 mb-2" @onclick="ExportToGeoJSON">
+                        <i class="bi bi-file-earmark-code"></i> Export to GeoJSON
+                    </button>
+                    <button class="btn btn-outline-danger w-100" @onclick="SimulateAlerts">
+                        <i class="bi bi-exclamation-triangle"></i> Simulate Alerts
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="col-md-9">
+            <!-- Map Display -->
+            <div class="card mb-3">
+                <div class="card-body p-0">
+                    <div id="map" style="width: 100%; height: 500px;"></div>
+                </div>
+            </div>
+            
+            <!-- Alert Display -->
+            @if (activeAlerts.Count > 0)
+            {
+                <div class="alert alert-danger mb-3">
+                    <h5>
+                        <i class="bi bi-exclamation-triangle"></i> 
+                        Active Alerts (@activeAlerts.Count)
+                    </h5>
+                    <ul class="mb-0">
+                        @foreach (var alert in activeAlerts)
+                        {
+                            <li>
+                                <strong>@alert.Type (@alert.Severity)</strong>: @alert.Message
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+            
+            <!-- Results Panels -->
+            <div class="row">
+                <!-- Analysis Results -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Analysis Results</h5>
+                        </div>
+                        <div class="card-body">
+                            @if (selectedAnalysisType == "distance")
+                            {
+                                <p><strong>Distance:</strong> @distance.ToString("F2") km</p>
+                            }
+                            else if (selectedAnalysisType == "buffer")
+                            {
+                                <p><strong>Buffer Area:</strong> @bufferAreaKm2.ToString("F2") km²</p>
+                            }
+                            else if (selectedAnalysisType == "clusters")
+                            {
+                                <p><strong>Cluster Count:</strong> @clusterCount</p>
+                            }
+                            else if (selectedAnalysisType == "hazard" && hazardAnalysisResults.Count > 0)
+                            {
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Location</th>
+                                            <th>Hazard Type</th>
+                                            <th>Risk Level</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var result in hazardAnalysisResults)
+                                        {
+                                            <tr>
+                                                <td>@result.PointName</td>
+                                                <td>@result.HazardType</td>
+                                                <td>
+                                                    <span class="badge @GetRiskBadgeClass(result.RiskLevel)">
+                                                        @result.RiskLevel
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else if (selectedAnalysisType == "evacuation" && evacuationRoutes.Count > 0)
+                            {
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Destination</th>
+                                            <th>Distance</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var route in evacuationRoutes)
+                                        {
+                                            <tr>
+                                                <td>@route.Destination</td>
+                                                <td>@route.Distance.ToString("F2") km</td>
+                                                <td>
+                                                    <span class="badge @(route.Safe ? "bg-success" : "bg-danger")">
+                                                        @(route.Safe ? "Safe" : "Unsafe")
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else if (selectedAnalysisType == "intersection" && intersectionResults != null)
+                            {
+                                <p><strong>Intersected Area:</strong> @intersectionResults.TotalArea.ToString("F2") km²</p>
+                                <p><strong>Feature Count:</strong> @intersectionResults.Features.Count</p>
+                                <div style="max-height: 200px; overflow-y: auto;">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Feature</th>
+                                                <th>Area (km²)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var feature in intersectionResults.Features)
+                                            {
+                                                <tr>
+                                                    <td>@feature.Name</td>
+                                                    <td>@feature.Area.ToString("F2")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else if (selectedAnalysisType == "infrastructure" && infrastructureResults != null)
+                            {
+                                <p><strong>Infrastructure at Risk:</strong> @infrastructureResults.AtRiskCount of @infrastructureResults.TotalCount (@infrastructureResults.PercentAtRisk.ToString("F1")%)</p>
+                                <div style="max-height: 200px; overflow-y: auto;">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Type</th>
+                                                <th>Total</th>
+                                                <th>At Risk</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var type in infrastructureResults.ByType)
+                                            {
+                                                <tr>
+                                                    <td>@type.Key</td>
+                                                    <td>@type.Value.Total</td>
+                                                    <td>@type.Value.AtRisk (@type.Value.PercentAtRisk.ToString("F1")%)</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Risk Summary -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">Risk Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Total Area at Risk:</strong> @totalAreaAtRisk.ToString("F2") km²</p>
+                            <p><strong>Population Potentially Affected:</strong> @populationAtRisk.ToString("N0")</p>
+                            <p><strong>Critical Infrastructure in Hazard Zones:</strong> @criticalInfrastructureCount</p>
+                            <p><strong>Overall Risk Level:</strong> 
+                                <span class="badge @GetRiskBadgeClass(overallRiskLevel)">@overallRiskLevel</span>
+                            </p>
+                            
+                            <div class="progress mb-2">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: @(riskPercentages.Low)%" 
+                                     aria-valuenow="@riskPercentages.Low" aria-valuemin="0" aria-valuemax="100">
+                                    Low
+                                </div>
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: @(riskPercentages.Medium)%" 
+                                     aria-valuenow="@riskPercentages.Medium" aria-valuemin="0" aria-valuemax="100">
+                                    Medium
+                                </div>
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: @(riskPercentages.High)%" 
+                                     aria-valuenow="@riskPercentages.High" aria-valuemin="0" aria-valuemax="100">
+                                    High
+                                </div>
+                            </div>
+                            <div class="text-center small">
+                                <span class="text-success">Low: @riskPercentages.Low%</span> | 
+                                <span class="text-warning">Medium: @riskPercentages.Medium%</span> | 
+                                <span class="text-danger">High: @riskPercentages.High%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
+    // Basic analysis variables
     private double distance;
     private string bufferedGeoJSON = "";
     private int clusterCount;
-
+    private double bufferRadius = 10;
+    private double bufferAreaKm2 = 0;
+    
+    // Advanced analysis variables
+    private string selectedAnalysisType = "distance";
+    private List<HazardRiskResult> hazardAnalysisResults = new();
+    private List<EvacuationRoute> evacuationRoutes = new();
+    private double isolineMaxDistance = 50;
+    private double totalAreaAtRisk = 0;
+    private int populationAtRisk = 0;
+    private int criticalInfrastructureCount = 0;
+    private string overallRiskLevel = "Moderate";
+    
+    // Layer control
+    private bool showEarthquakeLayer = false;
+    private bool showLandslideLayer = false;
+    private bool showFloodLayer = false;
+    private bool showSnowLayer = false;
+    private bool showInfrastructureLayer = false;
+    private bool showAdminBoundaries = false;
+    
+    // Intersection analysis
+    private string intersectionLayer1 = "Earthquake";
+    private string intersectionLayer2 = "Flood";
+    private IntersectionResult intersectionResults;
+    
+    // Infrastructure analysis
+    private InfrastructureAnalysisResult infrastructureResults;
+    
+    // File upload
+    private string uploadFileType = "geojson";
+    private string uploadLayerName = "Custom Layer";
+    private string uploadedGeoJSON = "";
+    private string uploadErrorMessage = "";
+    
+    // Search and location
+    private string searchQuery = "";
+    private List<SearchResult> searchResults = new();
+    
+    // Alerts
+    private List<HazardAlert> activeAlerts = new();
+    
+    // Risk percentages for progress bar
+    private (double Low, double Medium, double High) riskPercentages = (30, 45, 25);
+    
+    // Location data
+    private readonly Dictionary<string, double[]> locations = new()
+    {
+        { "Gilgit", new double[] { 74.3481, 35.3212 } },
+        { "Skardu", new double[] { 75.6372, 35.8896 } },
+        { "Hunza", new double[] { 73.0551, 36.0082 } },
+        { "Astore", new double[] { 76.3545, 35.4282 } },
+        { "Ghanche", new double[] { 76.7298, 35.2939 } },
+        { "Ghizer", new double[] { 73.3498, 36.3022 } },
+        { "Nagar", new double[] { 74.0799, 36.2579 } },
+        { "Shigar", new double[] { 75.5420, 35.4765 } }
+    };
+    
+    // Hazard zone data (simplified for example)
+    private readonly List<HazardZone> hazardZones = new();
+    
+    // Critical infrastructure data
+    private readonly List<Infrastructure> criticalInfrastructure = new();
+    
     public RiskAtlas()
     {
+        // Initialize hazard zones for example use
+        InitializeHazardZones();
+        
+        // Initialize critical infrastructure
+        InitializeInfrastructure();
+        
+        // Calculate initial metrics
+        CalculateRiskMetrics();
     }
-
+    
+    private void InitializeHazardZones()
+    {
+        // Example earthquake zone
+        hazardZones.Add(new HazardZone
+        {
+            Type = "Earthquake",
+            Risk = "High",
+            Coordinates = new double[][][] {
+                new double[][] {
+                    new double[] { 74.0, 35.0 },
+                    new double[] { 75.0, 35.0 },
+                    new double[] { 75.0, 36.0 },
+                    new double[] { 74.0, 36.0 },
+                    new double[] { 74.0, 35.0 }
+                }
+            }
+        });
+        
+        // Example landslide zone
+        hazardZones.Add(new HazardZone
+        {
+            Type = "Landslide",
+            Risk = "Medium",
+            Coordinates = new double[][][] {
+                new double[][] {
+                    new double[] { 73.0, 36.0 },
+                    new double[] { 73.5, 36.0 },
+                    new double[] { 73.5, 36.5 },
+                    new double[] { 73.0, 36.5 },
+                    new double[] { 73.0, 36.0 }
+                }
+            }
+        });
+        
+        // Example flood zone
+        hazardZones.Add(new HazardZone
+        {
+            Type = "Flood",
+            Risk = "High",
+            Coordinates = new double[][][] {
+                new double[][] {
+                    new double[] { 75.5, 35.8 },
+                    new double[] { 76.0, 35.8 },
+                    new double[] { 76.0, 36.0 },
+                    new double[] { 75.5, 36.0 },
+                    new double[] { 75.5, 35.8 }
+                }
+            }
+        });
+        
+        // Example snow avalanche zone
+        hazardZones.Add(new HazardZone
+        {
+            Type = "Snow Avalanche",
+            Risk = "Medium",
+            Coordinates = new double[][][] {
+                new double[][] {
+                    new double[] { 76.3, 35.2 },
+                    new double[] { 76.5, 35.2 },
+                    new double[] { 76.5, 35.4 },
+                    new double[] { 76.3, 35.4 },
+                    new double[] { 76.3, 35.2 }
+                }
+            }
+        });
+    }
+    
+    private void InitializeInfrastructure()
+    {
+        // Hospitals
+        criticalInfrastructure.Add(new Infrastructure { 
+            Name = "Gilgit District Hospital", 
+            Type = "Hospital",
+            Coordinates = new double[] { 74.3081, 35.9112 }
+        });
+        
+        criticalInfrastructure.Add(new Infrastructure { 
+            Name = "Skardu Medical Center", 
+            Type = "Hospital",
+            Coordinates = new double[] { 75.6272, 35.2896 }
+        });
+        
+        // Power Plants
+        criticalInfrastructure.Add(new Infrastructure { 
+            Name = "Hunza Hydropower Plant", 
+            Type = "Power",
+            Coordinates = new double[] { 73.0351, 36.1082 }
+        });
+        
+        // Schools
+        criticalInfrastructure.Add(new Infrastructure { 
+            Name = "Gilgit Public School", 
+            Type = "School",
+            Coordinates = new double[] { 74.3281, 35.3112 }
+        });
+        
+        criticalInfrastructure.Add(new Infrastructure { 
+            Name = "Karakoram University", 
+            Type = "School",
+            Coordinates = new double[] { 74.3581, 35.9212 }
+        });
+        
+        // Bridges
+        criticalInfrastructure.Add(new Infrastructure { 
+            Name = "Gilgit River Bridge", 
+            Type = "Bridge",
+            Coordinates = new double[] { 74.3181, 35.9212 }
+        });
+        
+        criticalInfrastructure.Add(new Infrastructure { 
+            Name = "Indus Bridge Skardu", 
+            Type = "Bridge",
+            Coordinates = new double[] { 75.6172, 35.8796 }
+        });
+        
+        // Emergency Shelters
+        criticalInfrastructure.Add(new Infrastructure { 
+            Name = "Gilgit Emergency Center", 
+            Type = "Shelter",
+            Coordinates = new double[] { 74.3491, 35.3222 }
+        });
+    }
+    
+    private void CalculateRiskMetrics()
+    {
+        // Calculate total area at risk (in sq km)
+        totalAreaAtRisk = 250.5;
+        
+        // Estimate population at risk (placeholder values)
+        populationAtRisk = 125000;
+        
+        // Count critical infrastructure in hazard zones (placeholder)
+        criticalInfrastructureCount = 12;
+        
+        // Generate some risk percentages (placeholder)
+        riskPercentages = (30, 45, 25);
+    }
+    
     private async Task CalculateDistance()
     {
-        var point1 = new double[] { 74.3481, 35.3212 }; // Gilgit (Longitude, Latitude)
-        var point2 = new double[] { 75.6372, 35.8896 }; // Skardu (Longitude, Latitude)
+        var point1 = locations["Gilgit"]; // Gilgit
+        var point2 = locations["Skardu"]; // Skardu
 
-        distance = await JS.InvokeAsync<double>("turfInterop.calculateDistance", point1, point2);
+        try
+        {
+            distance = await JS.InvokeAsync<double>("turfInterop.calculateDistance", point1, point2);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error calculating distance: {ex.Message}");
+        }
     }
 
     private async Task BufferRegion()
     {
-        var point = new double[] { 74.3481, 35.3212 }; // Gilgit
-        bufferedGeoJSON = await JS.InvokeAsync<string>("turfInterop.bufferRegion", point, 10, "kilometers");
+        var point = locations["Gilgit"]; // Gilgit
+        try
+        {
+            bufferedGeoJSON = await JS.InvokeAsync<string>("turfInterop.bufferRegion", point, bufferRadius, "kilometers");
+            
+            // Calculate the area of the buffer (approximate)
+            bufferAreaKm2 = Math.PI * bufferRadius * bufferRadius;
+            
+            // Update map with buffer
+            await RenderBufferOnMap(bufferedGeoJSON);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating buffer: {ex.Message}");
+        }
     }
 
     private async Task ClusterPoints()
     {
-        var points = new double[][]
+        var points = locations.Values.ToArray();
+        clusterCount = await JS.InvokeAsync<int>("turfInterop.clusterPoints", points, 50);
+    }
+    
+    private async Task AnalyzeHazardRisk()
+    {
+        // Convert locations to points format needed by JS
+        var points = locations.Select(l => new PointLocation
         {
-            new double[] { 74.3481, 35.3212 }, // Gilgit
-            new double[] { 75.6372, 35.8896 }, // Skardu
-            new double[] { 73.0551, 36.0082 }, // Hunza
-            new double[] { 76.3545, 35.4282 }  // Astore
+            Name = l.Key,
+            Lat = l.Value[1],
+            Lng = l.Value[0]
+        }).ToList();
+        
+        // Call JS function to analyze risk
+        hazardAnalysisResults = await JS.InvokeAsync<List<HazardRiskResult>>("turfInterop.analyzeHazardRisk", points, hazardZones);
+        
+        // Update map with risk visualization
+        await RenderHazardRiskMap();
+    }
+    
+    private async Task GenerateIsolines()
+    {
+        var point = locations["Gilgit"]; // Center point
+        var breaks = new double[] { 10, 20, 30, 40, 50 }; // Isoline distances in km
+        var options = new IsolineOptions
+        {
+            MaxDistance = isolineMaxDistance,
+            CellSize = 0.5, // Grid cell size in km
+            Units = "kilometers"
+        };
+        
+        var isolinesJson = await JS.InvokeAsync<string>("turfInterop.generateIsolines", point, breaks, options);
+        
+        // Render isolines on map
+        await RenderIsolines(isolinesJson);
+    }
+    
+    private async Task FindEvacuationRoutes()
+    {
+        var startPoint = locations["Gilgit"]; // Starting point
+        
+        // End points - safe locations/shelters
+        var endPoints = new List<EvacuationPoint>
+        {
+            new EvacuationPoint { Name = "Shelter 1", Coordinates = locations["Hunza"] },
+            new EvacuationPoint { Name = "Shelter 2", Coordinates = locations["Skardu"] },
+            new EvacuationPoint { Name = "Shelter 3", Coordinates = locations["Shigar"] }
+        };
+        
+        // Find safe evacuation routes
+        evacuationRoutes = await JS.InvokeAsync<List<EvacuationRoute>>(
+            "turfInterop.findSafeEvacuationRoutes", startPoint, endPoints, hazardZones);
+        
+        // Render evacuation routes on map
+        // Render evacuation routes on map
+        await RenderEvacuationRoutes();
+    }
+
+    private async Task PerformIntersectionAnalysis()
+    {
+        // Get GeoJSON for both layers
+        var layer1GeoJSON = GetHazardLayerGeoJSON(intersectionLayer1);
+        var layer2GeoJSON = intersectionLayer2 == "CriticalInfrastructure"
+            ? GetInfrastructureGeoJSON()
+            : GetHazardLayerGeoJSON(intersectionLayer2);
+
+        // Perform intersection analysis
+        var result = await JS.InvokeAsync<IntersectionResultData>(
+            "turfInterop.performIntersectionAnalysis", layer1GeoJSON, layer2GeoJSON);
+
+        if (result.Success)
+        {
+            // Process results
+            intersectionResults = new IntersectionResult
+                {
+                    TotalArea = result.Intersections.Sum(i => i.IntersectionArea),
+                    Features = result.Intersections.Select(i => new IntersectionFeature
+                    {
+                        Name = $"{GetPropertyValue(i.Layer1Properties, "type") ?? intersectionLayer1} & {GetPropertyValue(i.Layer2Properties, "type") ?? intersectionLayer2}",
+                        Area = i.IntersectionArea
+                    }).ToList()
+                };
+
+            // Render the intersection on the map
+            await RenderIntersectionOnMap(result.GeoJson);
+        }
+    }
+
+    private string GetPropertyValue(object obj, string propertyName)
+    {
+        if (obj == null)
+            return null;
+
+        // Try to access as dynamic
+        try
+        {
+            // Convert to dictionary if it's a JsonElement (from System.Text.Json)
+            if (obj is System.Text.Json.JsonElement jsonElement)
+            {
+                if (jsonElement.TryGetProperty(propertyName, out var property))
+                {
+                    return property.GetString();
+                }
+                return null;
+            }
+
+            // Try to access as dynamic
+            dynamic dynamicObj = obj;
+            return dynamicObj[propertyName]?.ToString();
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private async Task AnalyzeMultiHazardRisk()
+    {
+        // Prepare hazard layers for analysis
+        var hazardLayers = new List<HazardLayerData>();
+
+        if (showEarthquakeLayer)
+            hazardLayers.Add(new HazardLayerData { Name = "Earthquake", Data = GetHazardLayerGeoJSON("Earthquake") });
+
+        if (showLandslideLayer)
+            hazardLayers.Add(new HazardLayerData { Name = "Landslide", Data = GetHazardLayerGeoJSON("Landslide") });
+
+        if (showFloodLayer)
+            hazardLayers.Add(new HazardLayerData { Name = "Flood", Data = GetHazardLayerGeoJSON("Flood") });
+
+        if (showSnowLayer)
+            hazardLayers.Add(new HazardLayerData { Name = "Snow Avalanche", Data = GetHazardLayerGeoJSON("Snow Avalanche") });
+
+        // If no layers selected, use all hazard layers
+        if (hazardLayers.Count == 0)
+        {
+            hazardLayers.Add(new HazardLayerData { Name = "Earthquake", Data = GetHazardLayerGeoJSON("Earthquake") });
+            hazardLayers.Add(new HazardLayerData { Name = "Landslide", Data = GetHazardLayerGeoJSON("Landslide") });
+            hazardLayers.Add(new HazardLayerData { Name = "Flood", Data = GetHazardLayerGeoJSON("Flood") });
+            hazardLayers.Add(new HazardLayerData { Name = "Snow Avalanche", Data = GetHazardLayerGeoJSON("Snow Avalanche") });
+        }
+
+        // Perform multi-hazard risk analysis
+        var result = await JS.InvokeAsync<MultiHazardRiskResult>(
+            "turfInterop.calculateMultiHazardRisk", hazardLayers);
+
+        if (result.Success)
+        {
+            // Display the risk zones on the map
+            await RenderRiskZonesOnMap(result.GeoJson);
+        }
+    }
+
+    private async Task AnalyzeCriticalInfrastructure()
+    {
+        // Get GeoJSON for critical infrastructure and hazards
+        var infrastructureGeoJSON = GetInfrastructureGeoJSON();
+        var hazardGeoJSON = GetAllHazardsGeoJSON();
+
+        // Perform infrastructure analysis
+        var result = await JS.InvokeAsync<InfrastructureAnalysisResultData>(
+            "turfInterop.analyzeCriticalInfrastructure", infrastructureGeoJSON, hazardGeoJSON);
+
+        if (result.Success)
+        {
+            // Process results
+            infrastructureResults = new InfrastructureAnalysisResult
+                {
+                    TotalCount = result.Results.TotalInfrastructure,
+                    AtRiskCount = result.Results.AtRisk,
+                    PercentAtRisk = result.Results.PercentAtRisk,
+                    ByType = result.Results.ByType.ToDictionary(
+                        kv => kv.Key,
+                        kv => new InfrastructureTypeStats
+                        {
+                            Total = kv.Value.Total,
+                            AtRisk = kv.Value.AtRisk,
+                            PercentAtRisk = kv.Value.PercentAtRisk
+                        })
+                };
+
+            // Update infrastructure count in risk summary
+            criticalInfrastructureCount = result.Results.AtRisk;
+
+            // Visualize infrastructure at risk on the map
+            await RenderInfrastructureAnalysisOnMap(hazardGeoJSON, infrastructureGeoJSON);
+        }
+    }
+
+    private async Task UpdateMapLayers()
+    {
+        // Prepare layers data for the map
+        var mapData = new MapData
+            {
+                BaseLayers = new List<BaseLayer>
+            {
+                new BaseLayer { Name = "OpenStreetMap", Url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", Default = true },
+                new BaseLayer { Name = "Satellite", Url = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" }
+            },
+                GeoJsonLayers = new List<GeoJsonLayer>()
+            };
+
+        // Add hazard layers based on selection
+        if (showEarthquakeLayer)
+        {
+            mapData.GeoJsonLayers.Add(GetHazardLayer("Earthquake", "#FF0000")); // Red
+        }
+
+        if (showLandslideLayer)
+        {
+            mapData.GeoJsonLayers.Add(GetHazardLayer("Landslide", "#FFA500")); // Orange
+        }
+
+        if (showFloodLayer)
+        {
+            mapData.GeoJsonLayers.Add(GetHazardLayer("Flood", "#0000FF")); // Blue
+        }
+
+        if (showSnowLayer)
+        {
+            mapData.GeoJsonLayers.Add(GetHazardLayer("Snow Avalanche", "#87CEEB")); // Sky Blue
+        }
+
+        // Add critical infrastructure layer if selected
+        if (showInfrastructureLayer)
+        {
+            mapData.GeoJsonLayers.Add(GetInfrastructureLayer());
+        }
+
+        // Add administrative boundaries if selected
+        if (showAdminBoundaries)
+        {
+            var adminResult = await JS.InvokeAsync<AdminBoundariesResult>("turfInterop.loadAdministrativeBoundaries");
+            if (adminResult.Success)
+            {
+                mapData.GeoJsonLayers.Add(new GeoJsonLayer
+                    {
+                        Name = "Administrative Boundaries",
+                        Data = adminResult.GeoJson,
+                        Color = "#333333",
+                        Weight = 2,
+                        FillOpacity = 0.1
+                    });
+            }
+        }
+
+        // Add uploaded custom layer if available
+        if (!string.IsNullOrEmpty(uploadedGeoJSON))
+        {
+            mapData.GeoJsonLayers.Add(new GeoJsonLayer
+                {
+                    Name = uploadLayerName,
+                    Data = uploadedGeoJSON,
+                    Color = "#9C27B0", // Purple
+                    Weight = 2,
+                    FillOpacity = 0.2
+                });
+        }
+
+        // Render the map with selected layers
+        await JS.InvokeAsync<bool>("turfInterop.renderMapWithLayers", "map", mapData);
+
+        // Add legend if any layers are displayed
+        if (mapData.GeoJsonLayers.Any())
+        {
+            await AddMapLegend(mapData.GeoJsonLayers);
+        }
+    }
+
+    private GeoJsonLayer GetHazardLayer(string hazardType, string color)
+    {
+        // Filter hazard zones by type
+        var zones = hazardZones.Where(z => z.Type == hazardType).ToList();
+
+        // Create a feature collection
+        var features = zones.Select(z => new
+        {
+            type = "Feature",
+            properties = new { type = z.Type, risk = z.Risk },
+            geometry = new { type = "Polygon", coordinates = z.Coordinates }
+        }).ToList();
+
+        var featureCollection = new { type = "FeatureCollection", features };
+
+        // Return as GeoJSON layer
+        return new GeoJsonLayer
+            {
+                Name = $"{hazardType} Zones",
+                Data = System.Text.Json.JsonSerializer.Serialize(featureCollection),
+                Color = color,
+                FillOpacity = 0.3
+            };
+    }
+
+    private GeoJsonLayer GetInfrastructureLayer()
+    {
+        // Create features for critical infrastructure
+        var features = criticalInfrastructure.Select(infra => new
+        {
+            type = "Feature",
+            properties = new { name = infra.Name, type = infra.Type },
+            geometry = new { type = "Point", coordinates = infra.Coordinates }
+        }).ToList();
+
+        var featureCollection = new { type = "FeatureCollection", features };
+
+        // Return as GeoJSON layer
+        return new GeoJsonLayer
+            {
+                Name = "Critical Infrastructure",
+                Data = System.Text.Json.JsonSerializer.Serialize(featureCollection),
+                Color = "#4CAF50", // Green
+                Weight = 2,
+                FillOpacity = 0.5
+            };
+    }
+
+    private string GetHazardLayerGeoJSON(string hazardType)
+    {
+        // Filter hazard zones by type
+        var zones = hazardZones.Where(z => z.Type == hazardType).ToList();
+
+        // Create a feature collection
+        var features = zones.Select(z => new
+        {
+            type = "Feature",
+            properties = new { type = z.Type, risk = z.Risk },
+            geometry = new { type = "Polygon", coordinates = z.Coordinates }
+        }).ToList();
+
+        var featureCollection = new { type = "FeatureCollection", features };
+
+        // Return as JSON string
+        return System.Text.Json.JsonSerializer.Serialize(featureCollection);
+    }
+
+    private string GetInfrastructureGeoJSON()
+    {
+        // Create features for critical infrastructure
+        var features = criticalInfrastructure.Select(infra => new
+        {
+            type = "Feature",
+            properties = new { name = infra.Name, type = infra.Type },
+            geometry = new { type = "Point", coordinates = infra.Coordinates }
+        }).ToList();
+
+        var featureCollection = new { type = "FeatureCollection", features };
+
+        // Return as JSON string
+        return System.Text.Json.JsonSerializer.Serialize(featureCollection);
+    }
+
+    private string GetAllHazardsGeoJSON()
+    {
+        // Create a feature collection with all hazard zones
+        var features = hazardZones.Select(z => new
+        {
+            type = "Feature",
+            properties = new { type = z.Type, risk = z.Risk },
+            geometry = new { type = "Polygon", coordinates = z.Coordinates }
+        }).ToList();
+
+        var featureCollection = new { type = "FeatureCollection", features };
+
+        // Return as JSON string
+        return System.Text.Json.JsonSerializer.Serialize(featureCollection);
+    }
+
+    private async Task RenderBufferOnMap(string geoJson)
+    {
+        // Add buffer to map as a layer
+        var mapData = new MapData
+            {
+                BaseLayers = new List<BaseLayer>
+            {
+                new BaseLayer { Name = "OpenStreetMap", Url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", Default = true }
+            },
+                GeoJsonLayers = new List<GeoJsonLayer>
+            {
+                new GeoJsonLayer
+                {
+                    Name = "Buffer Zone",
+                    Data = geoJson,
+                    Color = "#FF00FF", // Magenta
+                    FillOpacity = 0.2,
+                    Weight = 2
+                }
+            }
+            };
+
+        await JS.InvokeAsync<bool>("turfInterop.renderMapWithLayers", "map", mapData);
+    }
+
+    private async Task RenderHazardRiskMap()
+    {
+        // Similar to UpdateMapLayers but focused on risk visualization
+        await UpdateMapLayers();
+    }
+
+    private async Task RenderIsolines(string isolinesJson)
+    {
+        // Add isolines to map
+        var mapData = new MapData
+            {
+                BaseLayers = new List<BaseLayer>
+            {
+                new BaseLayer { Name = "OpenStreetMap", Url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", Default = true }
+            },
+                GeoJsonLayers = new List<GeoJsonLayer>
+            {
+                new GeoJsonLayer
+                {
+                    Name = "Distance Isolines",
+                    Data = isolinesJson,
+                    Color = "#008000", // Green
+                    Weight = 2,
+                    FillOpacity = 0
+                }
+            }
+            };
+
+        await JS.InvokeAsync<bool>("turfInterop.renderMapWithLayers", "map", mapData);
+    }
+
+    private async Task RenderEvacuationRoutes()
+    {
+        // Create GeoJSON for evacuation routes
+        var features = evacuationRoutes.Select(route => new
+        {
+            type = "Feature",
+            properties = new
+            {
+                destination = route.Destination,
+                distance = route.Distance,
+                safe = route.Safe
+            },
+            geometry = new
+            {
+                type = "LineString",
+                coordinates = new[] { route.Coordinates[0], route.Coordinates[1] }
+            }
+        }).ToList();
+
+        var featureCollection = new { type = "FeatureCollection", features };
+        var routesJson = System.Text.Json.JsonSerializer.Serialize(featureCollection);
+
+        // Add routes to map
+        var mapData = new MapData
+            {
+                BaseLayers = new List<BaseLayer>
+            {
+                new BaseLayer { Name = "OpenStreetMap", Url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", Default = true }
+            },
+                GeoJsonLayers = new List<GeoJsonLayer>
+            {
+                new GeoJsonLayer
+                {
+                    Name = "Evacuation Routes",
+                    Data = routesJson,
+                    Color = "#800080", // Purple
+                    Weight = 3,
+                    FillOpacity = 0
+                }
+            }
+            };
+
+        await JS.InvokeAsync<bool>("turfInterop.renderMapWithLayers", "map", mapData);
+    }
+
+    private async Task RenderIntersectionOnMap(string geoJson)
+    {
+        // Add intersection to map
+        var mapData = new MapData
+            {
+                BaseLayers = new List<BaseLayer>
+            {
+                new BaseLayer { Name = "OpenStreetMap", Url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", Default = true }
+            },
+                GeoJsonLayers = new List<GeoJsonLayer>
+            {
+                new GeoJsonLayer
+                {
+                    Name = "Intersection Areas",
+                    Data = geoJson,
+                    Color = "#E91E63", // Pink
+                    Weight = 2,
+                    FillOpacity = 0.5
+                }
+            }
+            };
+
+        await JS.InvokeAsync<bool>("turfInterop.renderMapWithLayers", "map", mapData);
+    }
+
+    private async Task RenderRiskZonesOnMap(string geoJson)
+    {
+        // Define colors for different risk levels
+        var riskColors = new Dictionary<string, string>
+        {
+            { "Very Low", "#4CAF50" },  // Green
+            { "Low", "#8BC34A" },       // Light Green
+            { "Moderate", "#FFC107" },  // Amber
+            { "High", "#FF5722" },      // Deep Orange
+            { "Very High", "#F44336" }  // Red
         };
 
-        clusterCount = await JS.InvokeAsync<int>("turfInterop.clusterPoints", points, 50);
+        // Add risk zones to map
+        var mapData = new MapData
+            {
+                BaseLayers = new List<BaseLayer>
+            {
+                new BaseLayer { Name = "OpenStreetMap", Url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", Default = true }
+            },
+                GeoJsonLayers = new List<GeoJsonLayer>
+            {
+                new GeoJsonLayer
+                {
+                    Name = "Multi-Hazard Risk Zones",
+                    Data = geoJson,
+                    Color = "#673AB7", // Default color
+                    Weight = 2,
+                    FillOpacity = 0.5
+                }
+            }
+            };
+
+        await JS.InvokeAsync<bool>("turfInterop.renderMapWithLayers", "map", mapData);
+
+        // Add a legend for risk zones
+        var legendItems = riskColors.Select(rc => new LegendItem
+            {
+                Label = rc.Key,
+                Color = rc.Value
+            }).ToList();
+
+        await AddMapLegend(legendItems);
+    }
+
+    private async Task RenderInfrastructureAnalysisOnMap(string hazardGeoJson, string infrastructureGeoJson)
+    {
+        // Add hazards and infrastructure to map
+        var mapData = new MapData
+            {
+                BaseLayers = new List<BaseLayer>
+            {
+                new BaseLayer { Name = "OpenStreetMap", Url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", Default = true }
+            },
+                GeoJsonLayers = new List<GeoJsonLayer>
+            {
+                new GeoJsonLayer
+                {
+                    Name = "Hazard Zones",
+                    Data = hazardGeoJson,
+                    Color = "#F44336", // Red
+                    Weight = 2,
+                    FillOpacity = 0.3
+                },
+                new GeoJsonLayer
+                {
+                    Name = "Critical Infrastructure",
+                    Data = infrastructureGeoJson,
+                    Color = "#4CAF50", // Green
+                    Weight = 3,
+                    FillOpacity = 0.8
+                }
+            }
+            };
+
+        await JS.InvokeAsync<bool>("turfInterop.renderMapWithLayers", "map", mapData);
+    }
+
+    private async Task AddMapLegend(List<GeoJsonLayer> layers)
+    {
+        var legendItems = layers.Select(l => new LegendItem
+            {
+                Label = l.Name,
+                Color = l.Color
+            }).ToList();
+
+        await JS.InvokeAsync<bool>("turfInterop.addMapLegend", legendItems);
+    }
+
+    private async Task AddMapLegend(List<LegendItem> legendItems)
+    {
+        await JS.InvokeAsync<bool>("turfInterop.addMapLegend", legendItems);
+    }
+
+    private async Task OnFileUpload(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            uploadErrorMessage = "";
+            var file = e.File;
+
+            // Read the file content
+            using var streamReader = new StreamReader(file.OpenReadStream());
+            var fileContent = await streamReader.ReadToEndAsync();
+
+            // Process the file based on type
+            var result = await JS.InvokeAsync<GeospatialUploadResult>(
+                "turfInterop.processGeospatialData", fileContent, uploadFileType);
+
+            if (result.Success)
+            {
+                // Store the processed GeoJSON
+                uploadedGeoJSON = result.Data;
+
+                // Update map to show the uploaded data
+                await UpdateMapLayers();
+            }
+            else
+            {
+                uploadErrorMessage = result.Error;
+            }
+        }
+        catch (Exception ex)
+        {
+            uploadErrorMessage = $"Error processing file: {ex.Message}";
+        }
+    }
+
+    private async Task DetectUserLocation()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("turfInterop.detectUserLocation");
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+        }
+    }
+
+    private async Task SearchLocation()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+            return;
+
+        try
+        {
+            var result = await JS.InvokeAsync<SearchLocationResult>("turfInterop.searchByLocation", searchQuery);
+
+            if (result.Success && result.Results.Any())
+            {
+                searchResults = result.Results;
+
+                // Focus map on first result
+                var firstResult = result.Results.First();
+                await JS.InvokeVoidAsync("turfInterop.initializeMap", "map",
+                    new { lat = firstResult.Location.Lat, lng = firstResult.Location.Lng, zoom = 12 });
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+        }
+    }
+
+    private async Task ExportToPDF()
+    {
+        await JS.InvokeVoidAsync("turfInterop.exportMapAsPDF");
+    }
+
+    private async Task ExportToGeoJSON()
+    {
+        var result = await JS.InvokeAsync<ExportGeoJsonResult>("turfInterop.exportAsGeoJSON");
+
+        if (result.Success)
+        {
+            // For web download, we'd typically return the GeoJSON to download
+            // But since this is a MAUI app, we might need to store it locally
+
+            // Display success message
+            await JS.InvokeVoidAsync("alert", "GeoJSON data exported successfully");
+        }
+    }
+
+    private async Task SimulateAlerts()
+    {
+        // Register alert areas first (if not already done)
+        await JS.InvokeVoidAsync("turfInterop.registerAlertAreas", GetAllHazardsGeoJSON());
+
+        // Simulate some alerts
+        var result = await JS.InvokeAsync<AlertSimulationResult>("turfInterop.simulateAlerts");
+
+        if (result.Success)
+        {
+            activeAlerts = result.Alerts;
+            StateHasChanged();
+        }
+    }
+
+    private string GetRiskBadgeClass(string riskLevel)
+    {
+        return riskLevel.ToLower() switch
+        {
+            "high" => "bg-danger",
+            "medium" => "bg-warning text-dark",
+            "low" => "bg-success",
+            _ => "bg-secondary"
+        };
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -54,6 +1345,234 @@
         if (firstRender)
         {
             await JS.InvokeVoidAsync("turfInterop.initializeMap", "map");
+
+            // Setup event listener for alerts
+            await JS.InvokeVoidAsync("eval", @"
+                var dotNetRef = DotNet.createJSObjectReference(this);
+                document.addEventListener('hazardAlerts', function(e) {
+                    if (e && e.detail && e.detail.alerts) {
+                        dotNetRef.invokeMethodAsync('OnHazardAlerts', JSON.stringify(e.detail.alerts));
+                    }
+                });
+            ");
         }
+    }
+
+    [JSInvokable]
+    public void OnHazardAlerts(string alertsJson)
+    {
+        activeAlerts = System.Text.Json.JsonSerializer.Deserialize<List<HazardAlert>>(alertsJson);
+        StateHasChanged();
+    }
+
+    // Data classes for JS interop
+    public class PointLocation
+    {
+        public string Name { get; set; }
+        public double Lat { get; set; }
+        public double Lng { get; set; }
+    }
+
+    public class HazardZone
+    {
+        public string Type { get; set; }
+        public string Risk { get; set; }
+        public double[][][] Coordinates { get; set; }
+    }
+
+    public class HazardRiskResult
+    {
+        public string PointName { get; set; }
+        public string HazardType { get; set; }
+        public string RiskLevel { get; set; }
+    }
+
+    public class EvacuationPoint
+    {
+        public string Name { get; set; }
+        public double[] Coordinates { get; set; }
+    }
+
+    public class EvacuationRoute
+    {
+        public string Destination { get; set; }
+        public double[][] Coordinates { get; set; }
+        public bool Safe { get; set; }
+        public double Distance { get; set; }
+    }
+
+    public class IsolineOptions
+    {
+        public double MaxDistance { get; set; }
+        public double CellSize { get; set; }
+        public string Units { get; set; }
+    }
+
+    public class MapData
+    {
+        public List<BaseLayer> BaseLayers { get; set; }
+        public List<GeoJsonLayer> GeoJsonLayers { get; set; }
+    }
+
+    public class BaseLayer
+    {
+        public string Name { get; set; }
+        public string Url { get; set; }
+        public bool Default { get; set; }
+    }
+
+    public class GeoJsonLayer
+    {
+        public string Name { get; set; }
+        public string Data { get; set; }
+        public string Color { get; set; }
+        public int Weight { get; set; } = 2;
+        public double FillOpacity { get; set; } = 0.2;
+    }
+
+    public class Infrastructure
+    {
+        public string Name { get; set; }
+        public string Type { get; set; }
+        public double[] Coordinates { get; set; }
+    }
+
+    public class IntersectionFeature
+    {
+        public string Name { get; set; }
+        public double Area { get; set; }
+    }
+
+    public class IntersectionResult
+    {
+        public double TotalArea { get; set; }
+        public List<IntersectionFeature> Features { get; set; } = new();
+    }
+
+    public class InfrastructureTypeStats
+    {
+        public int Total { get; set; }
+        public int AtRisk { get; set; }
+        public double PercentAtRisk { get; set; }
+    }
+
+    public class InfrastructureAnalysisResult
+    {
+        public int TotalCount { get; set; }
+        public int AtRiskCount { get; set; }
+        public double PercentAtRisk { get; set; }
+        public Dictionary<string, InfrastructureTypeStats> ByType { get; set; } = new();
+    }
+
+    public class LegendItem
+    {
+        public string Label { get; set; }
+        public string Color { get; set; }
+    }
+
+    public class HazardAlert
+    {
+        public string Type { get; set; }
+        public string Severity { get; set; }
+        public string Area { get; set; }
+        public string Message { get; set; }
+        public string Time { get; set; }
+    }
+
+    public class HazardLayerData
+    {
+        public string Name { get; set; }
+        public string Data { get; set; }
+    }
+
+    // JS result objects
+    public class IntersectionResultData
+    {
+        public bool Success { get; set; }
+        public List<IntersectionData> Intersections { get; set; } = new();
+        public string GeoJson { get; set; }
+        public string Error { get; set; }
+    }
+
+    public class IntersectionData
+    {
+        public object Layer1Properties { get; set; }
+        public object Layer2Properties { get; set; }
+        public double IntersectionArea { get; set; }
+    }
+
+    public class MultiHazardRiskResult
+    {
+        public bool Success { get; set; }
+        public string GeoJson { get; set; }
+        public string Error { get; set; }
+    }
+
+    public class InfrastructureAnalysisResultData
+    {
+        public bool Success { get; set; }
+        public InfrastructureResults Results { get; set; }
+        public string Error { get; set; }
+    }
+
+    public class InfrastructureResults
+    {
+        public int TotalInfrastructure { get; set; }
+        public int AtRisk { get; set; }
+        public double PercentAtRisk { get; set; }
+        public Dictionary<string, InfrastructureTypeData> ByType { get; set; } = new();
+    }
+
+    public class InfrastructureTypeData
+    {
+        public int Total { get; set; }
+        public int AtRisk { get; set; }
+        public double PercentAtRisk { get; set; }
+    }
+
+    public class GeospatialUploadResult
+    {
+        public bool Success { get; set; }
+        public string Data { get; set; }
+        public string Error { get; set; }
+    }
+
+    public class AdminBoundariesResult
+    {
+        public bool Success { get; set; }
+        public string GeoJson { get; set; }
+    }
+
+    public class SearchLocationResult
+    {
+        public bool Success { get; set; }
+        public List<SearchResult> Results { get; set; } = new();
+        public string Error { get; set; }
+    }
+
+    public class SearchResult
+    {
+        public string Name { get; set; }
+        public LocationPoint Location { get; set; }
+        public string Type { get; set; }
+    }
+
+    public class LocationPoint
+    {
+        public double Lat { get; set; }
+        public double Lng { get; set; }
+    }
+
+    public class ExportGeoJsonResult
+    {
+        public bool Success { get; set; }
+        public string GeoJson { get; set; }
+        public string Error { get; set; }
+    }
+
+    public class AlertSimulationResult
+    {
+        public bool Success { get; set; }
+        public List<HazardAlert> Alerts { get; set; } = new();
     }
 }

@@ -1,0 +1,101 @@
+﻿body {
+
+.current-weather {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.weather-icon {
+    width: 70px;
+    height: 70px;
+}
+
+.temp-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.temperature {
+    font-size: 2.5rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.feels-like {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.weather-description {
+    font-size: 1.2rem;
+    margin: 8px 0;
+}
+
+.weather-details {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.detail-item {
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.detail-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-align: center;
+}
+
+.forecast-card {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px;
+    height: 100%;
+}
+
+.forecast-day {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.forecast-icon {
+    width: 50px;
+    height: 50px;
+}
+
+.forecast-temp {
+    margin: 5px 0;
+}
+
+    .forecast-temp .high {
+        font-weight: bold;
+        margin-right: 8px;
+    }
+
+    .forecast-temp .low {
+        color: #6c757d;
+    }
+
+.forecast-desc {
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.forecast-detail {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.hourly-icon {
+    width: 30px;
+    height: 30px;
+}
+
+
+}

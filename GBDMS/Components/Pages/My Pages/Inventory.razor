@@ -1,0 +1,636 @@
+﻿@page "/inventory"
+@inject IJSRuntime JS
+
+<div class="container inventory-container">
+    <h2 class="mb-4">Relief Supplies Inventory</h2>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="btn-group">
+                <button class="btn @(activeTab == "overview" ? "btn-primary" : "btn-outline-primary")" @onclick="@(() => SetActiveTab("overview"))">
+                    Overview
+                </button>
+                <button class="btn @(activeTab == "inventory" ? "btn-primary" : "btn-outline-primary")" @onclick="@(() => SetActiveTab("inventory"))">
+                    Inventory
+                </button>
+                <button class="btn @(activeTab == "distribution" ? "btn-primary" : "btn-outline-primary")" @onclick="@(() => SetActiveTab("distribution"))">
+                    Distribution
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(statusMessage))
+    {
+        <div class="alert alert-@statusType alert-dismissible fade show" role="alert">
+            @statusMessage
+            <button type="button" class="btn-close" @onclick="ClearStatus"></button>
+        </div>
+    }
+
+    @if (activeTab == "overview")
+    {
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card inventory-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Inventory Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Available</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var category in inventoryCategories)
+{
+    var available = GetTotalAvailableByCategory(category);
+    var status = GetCategoryStatus(available);
+                                        <tr>
+                                            <td>@category</td>
+                                            <td>@available units</td>
+                                            <td><span class="badge bg-@status.Color">@status.Text</span></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card inventory-card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Quick Stats</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="inventory-summary">
+                            <div class="summary-icon bg-primary">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+                            <div>
+                                <div>Total Items</div>
+                                <div class="summary-value">@inventoryItems.Count</div>
+                            </div>
+                        </div>
+                        <div class="inventory-summary">
+                            <div class="summary-icon bg-warning">
+                                <i class="bi bi-exclamation-triangle"></i>
+                            </div>
+                            <div>
+                                <div>Low Stock Items</div>
+                                <div class="summary-value">@inventoryItems.Count(i => i.Quantity < i.MinimumLevel && i.Quantity > 0)</div>
+                            </div>
+                        </div>
+                        <div class="inventory-summary">
+                            <div class="summary-icon bg-danger">
+                                <i class="bi bi-x-circle"></i>
+                            </div>
+                            <div>
+                                <div>Out of Stock</div>
+                                <div class="summary-value">@inventoryItems.Count(i => i.Quantity == 0)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (activeTab == "inventory")
+    {
+        <div class="card inventory-card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Inventory Items</h5>
+                <button class="btn btn-light btn-sm" @onclick="ShowNewItemModal">
+                    <i class="bi bi-plus-circle me-1"></i> Add Item
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search items..." @bind="inventorySearchTerm" @bind:event="oninput" />
+                        <select class="form-select" @bind="inventoryCategoryFilter">
+                            <option value="">All Categories</option>
+                            @foreach (var category in inventoryCategories)
+{
+    <option value="@category">@category</option>
+}
+                        </select>
+                        <button class="btn btn-light" @onclick="ClearInventoryFilters">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Min. Level</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in FilteredInventoryItems)
+                            {
+    var status = GetItemStatus(item);
+                                <tr>
+                                    <td>@item.Name</td>
+                                    <td>@item.Category</td>
+                                    <td>@item.Quantity @item.Unit</td>
+                                    <td>@item.MinimumLevel</td>
+                                    <td><span class="badge bg-@status.Color">@status.Text</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => UpdateItemStock(item)">
+                                            <i class="bi bi-arrow-up"></i> Add Stock
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (activeTab == "distribution")
+    {
+        <div class="card inventory-card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Distribution Records</h5>
+                <button class="btn btn-light btn-sm" @onclick="ShowDistributeModal">
+                    <i class="bi bi-send me-1"></i> New Distribution
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Destination</th>
+                                <th>Items</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var distribution in distributions.OrderByDescending(d => d.Date))
+                            {
+                                <tr>
+                                    <td>@distribution.Date.ToString("dd MMM yyyy")</td>
+                                    <td>@distribution.Destination</td>
+                                    <td>@distribution.Items.Count items</td>
+                                    <td><span class="badge bg-@GetDistributionStatusColor(distribution.Status)">@distribution.Status</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- New Item Modal -->
+    @if (showNewItemModal)
+    {
+        <div class="modal show d-block" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add New Item</h5>
+                        <button type="button" class="btn-close" @onclick="() => showNewItemModal = false"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Item Name</label>
+                            <input type="text" class="form-control" @bind="newItem.Name" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" @bind="newItem.Category">
+                                @foreach (var category in inventoryCategories)
+                                {
+                                    <option value="@category">@category</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-control" @bind="newItem.Quantity" min="0" />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Unit</label>
+                                <input type="text" class="form-control" @bind="newItem.Unit" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Minimum Level</label>
+                            <input type="number" class="form-control" @bind="newItem.MinimumLevel" min="0" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="() => showNewItemModal = false">Cancel</button>
+                        <button type="button" class="btn btn-primary" @onclick="AddInventoryItem">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+
+    <!-- Distribute Modal -->
+    @if (showDistributeModal)
+    {
+        <div class="modal show d-block" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">New Distribution</h5>
+                        <button type="button" class="btn-close" @onclick="() => showDistributeModal = false"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Destination</label>
+                            <input type="text" class="form-control" @bind="newDistribution.Destination" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Distribution Date</label>
+                            <input type="date" class="form-control" @bind="newDistribution.Date" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Add Items to Distribution</label>
+                            <select class="form-select" @bind="selectedItemForDistribution">
+                                <option value="">-- Select Item --</option>
+                                @foreach (var item in inventoryItems.Where(i => i.Quantity > 0))
+                                {
+                                    <option value="@item.Id">@item.Name (@item.Quantity @item.Unit available)</option>
+                                }
+                            </select>
+                            <button class="btn btn-sm btn-outline-primary mt-2" @onclick="AddDistributionItem">
+                                Add Selected Item
+                            </button>
+                        </div>
+
+                        @if (distributionItems.Any())
+                        {
+                            <div class="mb-3">
+                                <h6>Items for Distribution</h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Quantity</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in distributionItems)
+                                        {
+                                            var availableItem = inventoryItems.FirstOrDefault(i => i.Id == item.ItemId);
+                                            <tr>
+                                                <td>@item.Name</td>
+                                                <td>
+                                                    <input type="number" class="form-control form-control-sm" @bind="item.Quantity" min="1" max="@(availableItem?.Quantity ?? 0)" />
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-danger" @onclick="() => RemoveDistributionItem(item)">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="() => showDistributeModal = false">Cancel</button>
+                        <button type="button" class="btn btn-primary" @onclick="CreateDistribution">Create Distribution</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+</div>
+
+@code {
+    private string activeTab = "overview";
+    private string statusMessage = "";
+    private string statusType = "success";
+    private string inventorySearchTerm = "";
+    private string inventoryCategoryFilter = "";
+    private bool showNewItemModal = false;
+    private bool showDistributeModal = false;
+    
+    // Data models - initialize with empty collections to avoid null reference exceptions
+    private List<InventoryItem> inventoryItems = new List<InventoryItem>();
+    private List<Distribution> distributions = new List<Distribution>();
+    private InventoryItem newItem = new InventoryItem { 
+        LastUpdated = DateTime.Now 
+    };
+    private Distribution newDistribution = new Distribution { 
+        Date = DateTime.Now, 
+        Status = "Planned", 
+        Items = new List<DistributionItem>()
+    };
+    private List<DistributionItem> distributionItems = new List<DistributionItem>();
+private string selectedItemForDistribution = "";
+
+// Category lists
+    private readonly List<string> inventoryCategories = new List<string> {
+        "Food", "Water", "Shelter", "Clothing", "Medicine", "Hygiene", "Tools", "Other"
+    };
+
+    protected override void OnInitialized()
+    {
+        LoadSampleData();
+    }
+
+    private void LoadSampleData()
+    {
+        inventoryItems = new List<InventoryItem>
+{
+    new InventoryItem
+            {
+                Id = 1, ItemCode = "F001", Name = "Rice (5kg bag)", Category = "Food", 
+                Quantity = 250, Unit = "bags", MinimumLevel = 100, 
+                LastUpdated = DateTime.Now.AddDays(-5)
+            },
+            new InventoryItem
+            {
+                Id = 2, ItemCode = "F002", Name = "Flour (10kg bag)", Category = "Food", 
+                Quantity = 180, Unit = "bags", MinimumLevel = 80, 
+                LastUpdated = DateTime.Now.AddDays(-3)
+            },
+            new InventoryItem
+            {
+                Id = 3, ItemCode = "W001", Name = "Drinking Water (1.5L)", Category = "Water", 
+                Quantity = 1500, Unit = "bottles", MinimumLevel = 500, 
+                LastUpdated = DateTime.Now.AddDays(-2)
+            },
+            new InventoryItem
+            {
+                Id = 4, ItemCode = "S001", Name = "Tents (4-person)", Category = "Shelter", 
+                Quantity = 80, Unit = "tents", MinimumLevel = 50, 
+                LastUpdated = DateTime.Now.AddDays(-15)
+            },
+            new InventoryItem
+            {
+                Id = 5, ItemCode = "M001", Name = "First Aid Kits", Category = "Medicine", 
+                Quantity = 95, Unit = "kits", MinimumLevel = 50, 
+                LastUpdated = DateTime.Now.AddDays(-8)
+            },
+            new InventoryItem
+            {
+                Id = 6, ItemCode = "F003", Name = "Ready-to-eat Meals", Category = "Food", 
+                Quantity = 0, Unit = "packs", MinimumLevel = 200, 
+                LastUpdated = DateTime.Now.AddDays(-1)
+            }
+        };
+
+        distributions = new List<Distribution>
+        {
+            new Distribution
+            {
+                Id = 1, Date = DateTime.Now.AddDays(-15), Destination = "Gilgit City", 
+                Status = "Completed", Requestor = "Gilgit DC Office", 
+                Items = new List<DistributionItem>
+                {
+                    new DistributionItem { ItemId = 1, Name = "Rice (5kg bag)", Quantity = 50 },
+                    new DistributionItem { ItemId = 4, Name = "Tents (4-person)", Quantity = 10 }
+                }
+            },
+            new Distribution
+            {
+                Id = 2, Date = DateTime.Now.AddDays(-7), Destination = "Skardu", 
+                Status = "Completed", Requestor = "NDMA", 
+                Items = new List<DistributionItem>
+                {
+                    new DistributionItem { ItemId = 1, Name = "Rice (5kg bag)", Quantity = 30 },
+                    new DistributionItem { ItemId = 2, Name = "Flour (10kg bag)", Quantity = 20 }
+                }
+            },
+            new Distribution
+            {
+                Id = 3, Date = DateTime.Now.AddDays(2), Destination = "Astore", 
+                Status = "Planned", Requestor = "District Administration", 
+                Items = new List<DistributionItem>
+                {
+                    new DistributionItem { ItemId = 3, Name = "Drinking Water (1.5L)", Quantity = 150 }
+                }
+            }
+        };
+    }
+
+    private IEnumerable<InventoryItem> FilteredInventoryItems => inventoryItems
+        .Where(i => string.IsNullOrEmpty(inventorySearchTerm) || 
+            i.Name.Contains(inventorySearchTerm, StringComparison.OrdinalIgnoreCase) || 
+            i.ItemCode.Contains(inventorySearchTerm, StringComparison.OrdinalIgnoreCase))
+.Where(i => string.IsNullOrEmpty(inventoryCategoryFilter) || i.Category == inventoryCategoryFilter)
+.OrderBy(i => i.Category)
+.ThenBy(i => i.Name);
+
+    private void SetActiveTab(string tab)
+    {
+    activeTab = tab;
+}
+
+    private void ClearStatus()
+    {
+    statusMessage = "";
+}
+
+    private void ShowMessage(string message, string type = "success")
+    {
+    statusMessage = message;
+    statusType = type;
+}
+
+    private void ClearInventoryFilters()
+    {
+    inventorySearchTerm = "";
+    inventoryCategoryFilter = "";
+}
+
+    private void ShowNewItemModal()
+    {
+    newItem = new InventoryItem
+        {
+            Category = inventoryCategories[0],
+            LastUpdated = DateTime.Now
+        };
+        showNewItemModal = true;
+    }
+
+    private void AddInventoryItem()
+    {
+        if (string.IsNullOrWhiteSpace(newItem.Name))
+        {
+            ShowMessage("Item name is required", "danger");
+            return;
+        }
+
+        // Generate item code based on category
+        var categoryPrefix = newItem.Category.Substring(0, 1);
+    var itemsInCategory = inventoryItems.Count(i => i.Category == newItem.Category);
+        newItem.ItemCode = $"{categoryPrefix}{(itemsInCategory + 1):D03}";
+        
+        // Set ID
+        newItem.Id = inventoryItems.Any() ? inventoryItems.Max(i => i.Id) + 1 : 1;
+        
+        inventoryItems.Add(newItem);
+    ShowMessage($"Added new item: {newItem.Name}");
+    showNewItemModal = false;
+}
+
+    private void UpdateItemStock(InventoryItem item)
+    {
+        // Simple implementation just adding 10 to the stock
+        item.Quantity += 10;
+        item.LastUpdated = DateTime.Now;
+        ShowMessage($"Updated stock for {item.Name}");
+    }
+
+    private void ShowDistributeModal()
+    {
+    newDistribution = new Distribution
+        {
+            Date = DateTime.Now,
+            Status = "Planned"
+        };
+        distributionItems = new List<DistributionItem>();
+showDistributeModal = true;
+}
+
+    private void AddDistributionItem()
+    {
+    if (string.IsNullOrEmpty(selectedItemForDistribution)) return;
+        
+    var itemId = int.Parse(selectedItemForDistribution);
+    var item = inventoryItems.FirstOrDefault(i => i.Id == itemId);
+    if (item == null) return;
+        
+        // Check if already in list
+        if (distributionItems.Any(i => i.ItemId == itemId)) return;
+        
+        distributionItems.Add(new DistributionItem
+        {
+            ItemId = item.Id,
+            Name = item.Name,
+            Quantity = 1
+        });
+        
+    selectedItemForDistribution = "";
+}
+
+    private void RemoveDistributionItem(DistributionItem item)
+    {
+        distributionItems.Remove(item);
+    }
+
+    private void CreateDistribution()
+    {
+        if (string.IsNullOrEmpty(newDistribution.Destination) || !distributionItems.Any())
+{
+    ShowMessage("Please enter a destination and add at least one item.", "danger");
+    return;
+}
+
+        newDistribution.Id = distributions.Any() ? distributions.Max(d => d.Id) + 1 : 1;
+        newDistribution.Items = new List<DistributionItem>(distributionItems);
+
+distributions.Add(newDistribution);
+
+// Update inventory quantities
+        foreach (var item in distributionItems)
+        {
+    var inventoryItem = inventoryItems.FirstOrDefault(i => i.Id == item.ItemId);
+    if (inventoryItem != null)
+            {
+                inventoryItem.Quantity = Math.Max(0, inventoryItem.Quantity - item.Quantity);
+                inventoryItem.LastUpdated = DateTime.Now;
+            }
+        }
+
+ShowMessage($"Created new distribution to {newDistribution.Destination}");
+showDistributeModal = false;
+}
+
+// Helper methods
+    private int GetTotalAvailableByCategory(string category)
+    {
+    return inventoryItems.Where(i => i.Category == category).Sum(i => i.Quantity);
+}
+
+    private (string Color, string Text) GetCategoryStatus(int available)
+    {
+    if (available == 0) return ("danger", "Out of Stock");
+    if (available < 50) return ("warning", "Low Stock");
+    if (available < 100) return ("info", "Moderate");
+    return ("success", "Sufficient");
+}
+
+    private (string Color, string Text) GetItemStatus(InventoryItem item)
+    {
+    if (item.Quantity == 0) return ("danger", "Out of Stock");
+    if (item.Quantity < item.MinimumLevel) return ("warning", "Low Stock");
+    return ("success", "Sufficient");
+}
+
+    private string GetDistributionStatusColor(string status)
+    {
+    return status switch
+        {
+            "Planned" => "info",
+            "In Progress" => "warning",
+            "Completed" => "success",
+            "Cancelled" => "danger",
+            _ => "secondary"
+        };
+}
+
+// Data models
+    public class InventoryItem
+    {
+        public int Id { get; set; }
+        public string ItemCode { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Category { get; set; } = "";
+        public int Quantity { get; set; }
+        public string Unit { get; set; } = "";
+        public int MinimumLevel { get; set; }
+        public DateTime LastUpdated { get; set; }
+    }
+
+    public class Distribution
+    {
+        public int Id { get; set; }
+        public DateTime Date { get; set; }
+        public string Destination { get; set; } = "";
+        public string Status { get; set; } = "Planned";
+        public string Requestor { get; set; } = "";
+        public List<DistributionItem> Items { get; set; } = new();
+    }
+
+    public class DistributionItem
+    {
+        public int ItemId { get; set; }
+        public string Name { get; set; } = "";
+        public int Quantity { get; set; }
+    }
+}

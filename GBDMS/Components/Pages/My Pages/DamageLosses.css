@@ -1,0 +1,83 @@
+﻿/* Damage and Losses Styles */
+
+/* Summary Stats */
+.summary-stats {
+    padding: 0.5rem;
+}
+
+.stat-box {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 12px;
+    text-align: center;
+    border-left: 4px solid #6c757d;
+}
+
+.stat-box.total-damage {
+    border-left: 4px solid #dc3545;
+    margin-bottom: 12px;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* Category Distribution */
+.category-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.category-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
+}
+
+.category-color {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    margin-right: 4px;
+}
+
+/* Table Styling */
+.table tbody tr {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+    opacity: 0.5;
+}
+
+/* Form toggle transition */
+.card-body {
+    transition: all 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+    .category-legend {
+        justify-content: center;
+    }
+    
+    .stat-box {
+        margin-bottom: 10px;
+    }
+}

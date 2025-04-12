@@ -1,0 +1,750 @@
+﻿@page "/response"
+@inject IJSRuntime JS
+@implements IDisposable
+
+<div class="container-fluid">
+    <h2 class="mb-4">Rapid Response and Rescue Coordination</h2>
+
+    <div class="row">
+        <!-- Incident Overview -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Active Incident Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Incident Type</label>
+                        <select class="form-select" @bind="incidentType">
+                            <option value="Earthquake">Earthquake</option>
+                            <option value="Flood">Flood</option>
+                            <option value="Landslide">Landslide</option>
+                            <option value="Avalanche">Avalanche</option>
+                            <option value="GLOF">Glacial Lake Outburst Flood</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Incident Location</label>
+                        <select class="form-select" @bind="incidentLocation">
+                            <option value="Gilgit">Gilgit</option>
+                            <option value="Skardu">Skardu</option>
+                            <option value="Hunza">Hunza</option>
+                            <option value="Astore">Astore</option>
+                            <option value="Ghanche">Ghanche</option>
+                            <option value="Ghizer">Ghizer</option>
+                            <option value="Nagar">Nagar</option>
+                            <option value="Shigar">Shigar</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Incident Status</label>
+                        <select class="form-select" @bind="incidentStatus">
+                            <option value="New">New - Initial Assessment</option>
+                            <option value="Active">Active - Response Underway</option>
+                            <option value="Escalating">Escalating - Additional Resources Needed</option>
+                            <option value="Stabilizing">Stabilizing - Situation Under Control</option>
+                            <option value="Recovery">Recovery Phase</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Severity Level</label>
+                        <select class="form-select severity-select @GetSeverityClass()" @bind="severityLevel">
+                            <option value="1">Level 1 - Minor</option>
+                            <option value="2">Level 2 - Moderate</option>
+                            <option value="3">Level 3 - Significant</option>
+                            <option value="4">Level 4 - Severe</option>
+                            <option value="5">Level 5 - Catastrophic</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Incident Start Time</label>
+                        <input type="datetime-local" class="form-control" @bind="incidentStartTime" @bind:after="UpdateIncidentDuration" />
+                    </div>
+                    
+                    <div class="incident-timer mb-3 p-2 text-center">
+                        <div class="incident-timer-label">Time Since Incident</div>
+                        <div class="incident-timer-value">@incidentDuration</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Incident Summary</label>
+                        <textarea class="form-control" rows="3" @bind="incidentSummary"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Command Structure -->
+            <div class="card mt-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Command Structure</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Incident Commander</label>
+                        <input type="text" class="form-control" @bind="incidentCommander" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Operations Chief</label>
+                        <input type="text" class="form-control" @bind="operationsChief" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Planning Chief</label>
+                        <input type="text" class="form-control" @bind="planningChief" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Logistics Chief</label>
+                        <input type="text" class="form-control" @bind="logisticsChief" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Communications Lead</label>
+                        <input type="text" class="form-control" @bind="communicationsLead" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Resources and Maps -->
+        <div class="col-md-8">
+            <!-- Resource Deployment Tabs -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="resourceTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="deployed-tab" data-bs-toggle="tab" data-bs-target="#deployed" type="button" role="tab" aria-controls="deployed" aria-selected="true">Deployed Resources</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="available-tab" data-bs-toggle="tab" data-bs-target="#available" type="button" role="tab" aria-controls="available" aria-selected="false">Available Resources</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="requests-tab" data-bs-toggle="tab" data-bs-target="#requests" type="button" role="tab" aria-controls="requests" aria-selected="false">Resource Requests</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="resourceTabContent">
+                        <!-- Deployed Resources Tab -->
+                        <div class="tab-pane fade show active" id="deployed" role="tabpanel" aria-labelledby="deployed-tab">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Resource Type</th>
+                                            <th>Quantity</th>
+                                            <th>Location</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var resource in deployedResources)
+                                        {
+                                            <tr>
+                                                <td>@resource.Type</td>
+                                                <td>@resource.Quantity</td>
+                                                <td>@resource.Location</td>
+                                                <td>
+                                                    <span class="badge @GetStatusBadgeClass(resource.Status)">
+                                                        @resource.Status
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-primary" @onclick="() => UpdateResourceStatus(resource)">
+                                                        <i class="bi bi-pencil-fill"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger" @onclick="() => RemoveResource(resource, deployedResources)">
+                                                        <i class="bi bi-x-circle-fill"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button class="btn btn-success mt-2" @onclick="() => AddResource(deployedResources)">
+                                <i class="bi bi-plus-circle-fill"></i> Add Deployed Resource
+                            </button>
+                        </div>
+                        
+                        <!-- Available Resources Tab -->
+                        <div class="tab-pane fade" id="available" role="tabpanel" aria-labelledby="available-tab">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Resource Type</th>
+                                            <th>Quantity</th>
+                                            <th>Location</th>
+                                            <th>Readiness</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var resource in availableResources)
+                                        {
+                                            <tr>
+                                                <td>@resource.Type</td>
+                                                <td>@resource.Quantity</td>
+                                                <td>@resource.Location</td>
+                                                <td>
+                                                    <span class="badge @GetReadinessBadgeClass(resource.Readiness)">
+                                                        @resource.Readiness
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-success" @onclick="() => DeployResource(resource)">
+                                                        <i class="bi bi-arrow-right-circle-fill"></i> Deploy
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger" @onclick="() => RemoveResource(resource, availableResources)">
+                                                        <i class="bi bi-x-circle-fill"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button class="btn btn-success mt-2" @onclick="() => AddResource(availableResources)">
+                                <i class="bi bi-plus-circle-fill"></i> Add Available Resource
+                            </button>
+                        </div>
+                        
+                        <!-- Resource Requests Tab -->
+                        <div class="tab-pane fade" id="requests" role="tabpanel" aria-labelledby="requests-tab">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Resource Type</th>
+                                            <th>Quantity Needed</th>
+                                            <th>Priority</th>
+                                            <th>Requested By</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var request in resourceRequests)
+                                        {
+                                            <tr>
+                                                <td>@request.ResourceType</td>
+                                                <td>@request.QuantityNeeded</td>
+                                                <td>
+                                                    <span class="badge @GetPriorityBadgeClass(request.Priority)">
+                                                        @request.Priority
+                                                    </span>
+                                                </td>
+                                                <td>@request.RequestedBy</td>
+                                                <td>@request.Status</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-success" @onclick="() => FulfillRequest(request)">
+                                                        <i class="bi bi-check-circle-fill"></i> Fulfill
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger" @onclick="() => CancelRequest(request)">
+                                                        <i class="bi bi-x-circle-fill"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button class="btn btn-success mt-2" @onclick="AddRequest">
+                                <i class="bi bi-plus-circle-fill"></i> Add Resource Request
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Response Map -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Response Operations Map</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="responseMap" class="response-map"></div>
+                </div>
+                <div class="card-footer">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="showResources" checked @onchange="ToggleResourcesLayer">
+                        <label class="form-check-label" for="showResources">Show Resources</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="showEvacuations" checked @onchange="ToggleEvacuationsLayer">
+                        <label class="form-check-label" for="showEvacuations">Show Evacuation Zones</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="showRoadClosures" checked @onchange="ToggleRoadClosuresLayer">
+                        <label class="form-check-label" for="showRoadClosures">Show Road Closures</label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Logs and Communication -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">Activity Log</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="activity-log">
+                                @foreach (var log in activityLogs)
+                                {
+                                    <div class="activity-item">
+                                        <div class="activity-time">@log.Timestamp.ToString("HH:mm")</div>
+                                        <div class="activity-content">
+                                            <div class="activity-title">@log.Title</div>
+                                            <div class="activity-desc">@log.Description</div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Add new log entry..." @bind="newLogEntry">
+                                <button class="btn btn-primary" @onclick="AddLogEntry">
+                                    <i class="bi bi-plus-circle"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">Key Objectives</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="objectives-list">
+                                @foreach (var objective in objectives)
+                                {
+                                    <li class="objective-item @(objective.IsCompleted ? "completed" : "")">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   checked="@objective.IsCompleted" 
+                                                   @onchange="e => ToggleObjectiveCompletion(objective, e.Value)">
+                                            <label class="form-check-label">
+                                                @objective.Description
+                                            </label>
+                                        </div>
+                                        <div class="objective-meta">
+                                            <span class="objective-priority">
+                                                @GetPriorityLabel(objective.Priority)
+                                            </span>
+                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveObjective(objective)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                            <hr />
+                            <div class="input-group mt-3">
+                                <input type="text" class="form-control" placeholder="New objective..." @bind="newObjective">
+                                <select class="form-select" style="max-width: 110px;" @bind="newObjectivePriority">
+                                    <option value="High">High</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Low">Low</option>
+                                </select>
+                                <button class="btn btn-primary" @onclick="AddObjective">
+                                    <i class="bi bi-plus-circle"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    // Incident properties
+    private string incidentType = "Earthquake";
+    private string incidentLocation = "Gilgit";
+    private string incidentStatus = "Active";
+    private string severityLevel = "3";
+    private DateTime incidentStartTime = DateTime.Now.AddHours(-2);
+    private string incidentDuration = "2h 00m";
+    private string incidentSummary = "Moderate earthquake affecting residential areas in northern Gilgit. Initial reports indicate structural damage to older buildings and potential casualties.";
+    
+    // Command structure
+    private string incidentCommander = "Capt. Ahmed Khan";
+    private string operationsChief = "Lt. Fatima Ali";
+    private string planningChief = "Dr. Imran Shah";
+    private string logisticsChief = "Maj. Asad Malik";
+    private string communicationsLead = "Zahra Hussain";
+    
+    // Resources
+    private List<Resource> deployedResources = new();
+    private List<Resource> availableResources = new();
+    private List<ResourceRequest> resourceRequests = new();
+    
+    // Activity logging
+    private List<ActivityLog> activityLogs = new();
+    private string newLogEntry = "";
+    
+    // Objectives
+    private List<Objective> objectives = new();
+    private string newObjective = "";
+    private string newObjectivePriority = "High";
+    
+    // Map layers toggle states
+    private bool showResourcesLayer = true;
+    private bool showEvacuationsLayer = true;
+    private bool showRoadClosuresLayer = true;
+    
+    // Timer for incident duration
+    private System.Threading.Timer? durationTimer;
+
+    protected override void OnInitialized()
+    {
+        // Initialize with sample data
+        InitializeSampleData();
+        
+        // Start the incident duration timer - update every 30 seconds
+        durationTimer = new System.Threading.Timer(_ =>
+        {
+            UpdateIncidentDuration();
+            InvokeAsync(StateHasChanged);
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeMap();
+        }
+    }
+    
+    public void Dispose()
+    {
+        // Properly dispose the timer to prevent memory leaks
+        if (durationTimer != null)
+        {
+            durationTimer.Dispose();
+            durationTimer = null;
+        }
+    }
+    
+    private void InitializeSampleData()
+    {
+        // Sample deployed resources
+        deployedResources = new List<Resource>
+        {
+            new() { Type = "Search & Rescue Team", Quantity = 3, Location = "Gilgit City Center", Status = "Operational" },
+            new() { Type = "Ambulances", Quantity = 5, Location = "Gilgit Hospital", Status = "En Route" },
+            new() { Type = "Medical Personnel", Quantity = 12, Location = "Field Hospital", Status = "Operational" },
+            new() { Type = "Heavy Equipment", Quantity = 2, Location = "Northern District", Status = "En Route" }
+        };
+        
+        // Sample available resources
+        availableResources = new List<Resource>
+        {
+            new() { Type = "Search & Rescue Team", Quantity = 2, Location = "Skardu Base", Readiness = "Ready" },
+            new() { Type = "Helicopters", Quantity = 1, Location = "Gilgit Airport", Readiness = "Standby" },
+            new() { Type = "Emergency Shelter Kits", Quantity = 50, Location = "Central Warehouse", Readiness = "Ready" },
+            new() { Type = "Water Purification Units", Quantity = 5, Location = "Supply Depot", Readiness = "Preparation" }
+        };
+        
+        // Sample resource requests
+        resourceRequests = new List<ResourceRequest>
+        {
+            new() { ResourceType = "Medical Supplies", QuantityNeeded = 10, Priority = "High", RequestedBy = "Field Hospital Alpha", Status = "Pending" },
+            new() { ResourceType = "Tents", QuantityNeeded = 25, Priority = "Medium", RequestedBy = "Evacuation Center", Status = "Approved" },
+            new() { ResourceType = "Food Packages", QuantityNeeded = 100, Priority = "High", RequestedBy = "Shelter Coordinator", Status = "In Progress" }
+        };
+        
+        // Sample activity logs
+        activityLogs = new List<ActivityLog>
+        {
+            new() { Timestamp = DateTime.Now.AddMinutes(-95), Title = "Incident Reported", Description = "Initial earthquake reports received from Gilgit City Center." },
+            new() { Timestamp = DateTime.Now.AddMinutes(-90), Title = "Response Activated", Description = "Emergency response protocol activated; command center established." },
+            new() { Timestamp = DateTime.Now.AddMinutes(-75), Title = "First Teams Deployed", Description = "First search and rescue teams deployed to affected areas." },
+            new() { Timestamp = DateTime.Now.AddMinutes(-60), Title = "Field Hospital", Description = "Field hospital established at Gilgit Sports Complex." },
+            new() { Timestamp = DateTime.Now.AddMinutes(-45), Title = "Road Closure", Description = "Karakoram Highway closed at KM 35 due to landslide." },
+            new() { Timestamp = DateTime.Now.AddMinutes(-30), Title = "Casualty Report", Description = "Initial casualty report: 12 injured, 2 critical, 0 fatalities." },
+            new() { Timestamp = DateTime.Now.AddMinutes(-15), Title = "Evacuation", Description = "Northern residential sector evacuation 75% complete." }
+        };
+        
+        // Sample objectives
+        objectives = new List<Objective>
+        {
+            new() { Description = "Complete search and rescue in Zone 1", Priority = "High", IsCompleted = true },
+            new() { Description = "Establish secondary field hospital", Priority = "High", IsCompleted = false },
+            new() { Description = "Clear debris from main access roads", Priority = "Medium", IsCompleted = false },
+            new() { Description = "Conduct structural assessment of critical infrastructure", Priority = "Medium", IsCompleted = false },
+            new() { Description = "Distribute emergency supplies to evacuation centers", Priority = "High", IsCompleted = true }
+        };
+    }
+    
+    private async Task InitializeMap()
+    {
+        try
+        {
+            // Center on Gilgit-Baltistan region
+            await JS.InvokeVoidAsync("initResponseMap", 35.8884, 74.4584);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing map: {ex.Message}");
+        }
+    }
+    
+    private async Task ToggleResourcesLayer(ChangeEventArgs e)
+    {
+        showResourcesLayer = (bool)e.Value!;
+        await UpdateMapLayers();
+    }
+    
+    private async Task ToggleEvacuationsLayer(ChangeEventArgs e)
+    {
+        showEvacuationsLayer = (bool)e.Value!;
+        await UpdateMapLayers();
+    }
+    
+    private async Task ToggleRoadClosuresLayer(ChangeEventArgs e)
+    {
+        showRoadClosuresLayer = (bool)e.Value!;
+        await UpdateMapLayers();
+    }
+    
+    private async Task UpdateMapLayers()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync(
+                "updateResponseMapLayers", 
+                showResourcesLayer, 
+                showEvacuationsLayer, 
+                showRoadClosuresLayer
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating map layers: {ex.Message}");
+        }
+    }
+    
+    private void UpdateIncidentDuration()
+    {
+        TimeSpan duration = DateTime.Now - incidentStartTime;
+        incidentDuration = $"{duration.Hours}h {duration.Minutes:00}m";
+    }
+    
+    private string GetSeverityClass()
+    {
+        return severityLevel switch
+        {
+            "1" => "severity-1",
+            "2" => "severity-2",
+            "3" => "severity-3",
+            "4" => "severity-4",
+            "5" => "severity-5",
+            _ => ""
+        };
+    }
+    
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Operational" => "bg-success",
+            "En Route" => "bg-primary",
+            "Delayed" => "bg-warning",
+            "Out of Service" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+    
+    private string GetReadinessBadgeClass(string readiness)
+    {
+        return readiness switch
+        {
+            "Ready" => "bg-success",
+            "Standby" => "bg-primary",
+            "Preparation" => "bg-info",
+            "Maintenance" => "bg-warning",
+            _ => "bg-secondary"
+        };
+    }
+    
+    private string GetPriorityBadgeClass(string priority)
+    {
+        return priority switch
+        {
+            "High" => "bg-danger",
+            "Medium" => "bg-warning",
+            "Low" => "bg-info",
+            _ => "bg-secondary"
+        };
+    }
+    
+    private string GetPriorityLabel(string priority)
+    {
+        return $"Priority: {priority}";
+    }
+    
+    private void AddLogEntry()
+    {
+        if (!string.IsNullOrWhiteSpace(newLogEntry))
+        {
+            activityLogs.Insert(0, new ActivityLog
+            {
+                Timestamp = DateTime.Now,
+                Title = "New Update",
+                Description = newLogEntry
+            });
+            
+            newLogEntry = "";
+        }
+    }
+    
+    private void AddObjective()
+    {
+        if (!string.IsNullOrWhiteSpace(newObjective))
+        {
+            objectives.Add(new Objective
+            {
+                Description = newObjective,
+                Priority = newObjectivePriority,
+                IsCompleted = false
+            });
+            
+            newObjective = "";
+        }
+    }
+    
+    private void RemoveObjective(Objective objective)
+    {
+        objectives.Remove(objective);
+    }
+    
+    private void ToggleObjectiveCompletion(Objective objective, object? isCompleted)
+    {
+        if (isCompleted != null)
+        {
+            objective.IsCompleted = (bool)isCompleted;
+        }
+    }
+    
+    private void AddResource(List<Resource> resourceList)
+    {
+        resourceList.Add(new Resource
+        {
+            Type = "New Resource",
+            Quantity = 1,
+            Location = incidentLocation,
+            Status = "Operational",
+            Readiness = "Ready"
+        });
+    }
+    
+    private void RemoveResource(Resource resource, List<Resource> resourceList)
+    {
+        resourceList.Remove(resource);
+    }
+    
+    private void UpdateResourceStatus(Resource resource)
+    {
+        resource.Status = resource.Status switch
+        {
+            "Operational" => "En Route",
+            "En Route" => "Delayed",
+            "Delayed" => "Out of Service",
+            _ => "Operational"
+        };
+    }
+    
+    private void DeployResource(Resource resource)
+    {
+        // Move resource from available to deployed
+        availableResources.Remove(resource);
+        
+        resource.Status = "En Route";
+        deployedResources.Add(resource);
+        
+        // Add log entry
+        activityLogs.Insert(0, new ActivityLog
+        {
+            Timestamp = DateTime.Now,
+            Title = "Resource Deployed",
+            Description = $"{resource.Type} deployed to {incidentLocation}"
+        });
+    }
+    
+    private void AddRequest()
+    {
+        resourceRequests.Add(new ResourceRequest
+        {
+            ResourceType = "New Request",
+            QuantityNeeded = 1,
+            Priority = "Medium",
+            RequestedBy = incidentCommander,
+            Status = "Pending"
+        });
+    }
+    
+    private void FulfillRequest(ResourceRequest request)
+    {
+        request.Status = "Fulfilled";
+        
+        // Add log entry
+        activityLogs.Insert(0, new ActivityLog
+        {
+            Timestamp = DateTime.Now,
+            Title = "Request Fulfilled",
+            Description = $"{request.ResourceType} request fulfilled for {request.RequestedBy}"
+        });
+    }
+    
+    private void CancelRequest(ResourceRequest request)
+    {
+        resourceRequests.Remove(request);
+    }
+    
+    // Data models
+    private class Resource
+    {
+        public string Type { get; set; } = "";
+        public int Quantity { get; set; }
+        public string Location { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string Readiness { get; set; } = "";
+    }
+    
+    private class ResourceRequest
+    {
+        public string ResourceType { get; set; } = "";
+        public int QuantityNeeded { get; set; }
+        public string Priority { get; set; } = "";
+        public string RequestedBy { get; set; } = "";
+        public string Status { get; set; } = "";
+    }
+    
+    private class ActivityLog
+    {
+        public DateTime Timestamp { get; set; }
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+    }
+    
+    private class Objective
+    {
+        public string Description { get; set; } = "";
+        public string Priority { get; set; } = "";
+        public bool IsCompleted { get; set; }
+    }
+}
