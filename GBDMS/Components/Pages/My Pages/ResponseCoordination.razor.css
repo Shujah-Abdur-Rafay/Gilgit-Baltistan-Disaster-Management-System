@@ -61,9 +61,9 @@
     padding: 8px 12px;
 }
 
-.activity-item:last-child {
-    border-bottom: none;
-}
+    .activity-item:last-child {
+        border-bottom: none;
+    }
 
 .activity-time {
     min-width: 50px;
@@ -103,14 +103,14 @@
     border-bottom: 1px solid #e9ecef;
 }
 
-.objective-item:last-child {
-    border-bottom: none;
-}
+    .objective-item:last-child {
+        border-bottom: none;
+    }
 
-.objective-item.completed .form-check-label {
-    text-decoration: line-through;
-    color: #6c757d;
-}
+    .objective-item.completed .form-check-label {
+        text-decoration: line-through;
+        color: #6c757d;
+    }
 
 .objective-meta {
     display: flex;
@@ -131,37 +131,37 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
-.map-icon.sar {
-    background-color: #f44336;
-    color: white;
-}
+    .map-icon.sar {
+        background-color: #f44336;
+        color: white;
+    }
 
-.map-icon.medical {
-    background-color: #2196f3;
-    color: white;
-}
+    .map-icon.medical {
+        background-color: #2196f3;
+        color: white;
+    }
 
-.map-icon.shelter {
-    background-color: #4caf50;
-    color: white;
-}
+    .map-icon.shelter {
+        background-color: #4caf50;
+        color: white;
+    }
 
-.map-icon.logistics {
-    background-color: #ff9800;
-    color: white;
-}
+    .map-icon.logistics {
+        background-color: #ff9800;
+        color: white;
+    }
 
 /* Responsive adjustments */
 @media (max-width: 767.98px) {
     .response-map {
         height: 300px;
     }
-    
+
     .activity-item {
         flex-direction: column;
     }
-    
+
     .activity-time {
         margin-bottom: 4px;
     }
-} 
+}
