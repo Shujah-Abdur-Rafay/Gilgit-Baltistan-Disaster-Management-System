@@ -4,6 +4,7 @@ using GBDMS.Repository;
 using GBDMS.Repository.IRepository;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
+using GBDMS.Services.ModelService;
 
 namespace GBDMS
 {
@@ -24,6 +25,9 @@ namespace GBDMS
             // Register database and repository services
             builder.Services.AddSingleton<LocalDbService>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
+            
+            // Register model execution service
+            builder.Services.AddScoped<PythonModelExecutor>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
