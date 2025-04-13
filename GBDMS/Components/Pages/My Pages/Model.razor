@@ -1,10 +1,18 @@
 ﻿@page "/model"
+@using System
+@using System.Text
 @using System.Text.Json
 @using System.Diagnostics
 @using System.IO
-@using GBDMS.Services.ModelService
+@using System.Collections.Generic
+@using System.Linq
+@using System.Threading.Tasks
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Web
 @using Microsoft.Extensions.Logging
 @using Microsoft.JSInterop
+@using GBDMS.Services.ModelService
 @inject IJSRuntime JS
 @inject PythonModelExecutor ModelExecutor
 @inject ILogger<Model> Logger
@@ -23,11 +31,11 @@
                     <!-- Dataset Upload -->
                     <div class="mb-3">
                         <h6>1. Upload Dataset</h6>
-                        
+
                         <!-- Drag & Drop Area -->
-                        <div class="drag-drop-zone @dropClass" @ref="dropZoneElement" 
-                             @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave" 
-                             @ondragover:preventDefault @ondrop="HandleDrop">
+                        <div class="drag-drop-zone @dropClass" @ref="dropZoneElement"
+                             @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave"
+                        @ondragover:preventDefault @ondrop="HandleDrop">
                             <InputFile OnChange="@LoadDataset" class="file-input" @ref="inputFile" accept=".csv" />
                             <div class="drag-drop-content">
                                 <i class="bi bi-cloud-upload fa-3x mb-2"></i>
@@ -39,7 +47,7 @@
                                 <p class="small text-muted mt-2">Supported format: CSV</p>
                             </div>
                         </div>
-                        
+
                         @if (!string.IsNullOrEmpty(datasetName))
                         {
                             <div class="alert alert-success mt-2">
@@ -51,13 +59,13 @@
                     <!-- Analysis Settings -->
                     <div class="mb-3">
                         <h6>2. Analysis Settings</h6>
-                        
+
                         <div class="mb-3">
                             <label class="form-label">Test Size (%)</label>
                             <input type="range" class="form-range" min="10" max="50" step="5" @bind="testSizePercent" />
                             <div class="text-end">@testSizePercent%</div>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label class="form-label">Number of Trees</label>
                             <select class="form-select" @bind="numTrees">
@@ -67,21 +75,21 @@
                                 <option value="500">500</option>
                             </select>
                         </div>
-                        
+
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" @bind="featureImportance" id="featureImportance">
                             <label class="form-check-label" for="featureImportance">
                                 Include Feature Importance
                             </label>
                         </div>
-                        
+
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" @bind="confusionMatrix" id="confusionMatrix">
                             <label class="form-check-label" for="confusionMatrix">
                                 Generate Confusion Matrix
                             </label>
                         </div>
-                        
+
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" @bind="runActualScript" id="runActualScript">
                             <label class="form-check-label" for="runActualScript">
@@ -104,7 +112,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <!-- Export Options -->
             <div class="card">
                 <div class="card-header bg-info text-white">
@@ -134,7 +142,7 @@
                     <button type="button" class="btn-close" @onclick="() => errorMessage = string.Empty"></button>
                 </div>
             }
-            
+
             @if (isAnalysisRunning)
             {
                 <!-- Loading Panel -->
@@ -145,15 +153,15 @@
                         </div>
                         <h4 class="mt-4">Processing Data</h4>
                         <p class="text-muted">Please wait while we analyze your dataset...</p>
-                        
+
                         <div class="progress mt-4">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                                 role="progressbar" 
+                            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                 role="progressbar"
                                  style="width: @progressValue%">
                                 @progressValue%
                             </div>
                         </div>
-                        
+
                         <!-- Processing Log -->
                         <div class="log-container mt-4 text-start">
                             @foreach (var log in processingLogs)
@@ -167,7 +175,7 @@
                     </div>
                 </div>
             }
-            
+
             @if (!isAnalysisRunning && !analysisComplete && datasetPreview.Count > 0)
             {
                 <!-- Dataset Preview Panel -->
@@ -201,7 +209,7 @@
                                     </tbody>
                                 </table>
                             </div>
-                            
+
                             <div class="alert alert-info mt-3">
                                 <strong>Dataset Info:</strong>
                                 <ul class="mb-0">
@@ -228,19 +236,19 @@
                     <div class="card-header">
                         <ul class="nav nav-tabs card-header-tabs" role="tablist">
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="dataset-tab" data-bs-toggle="tab" data-bs-target="#dataset" 
+                                <button class="nav-link active" id="dataset-tab" data-bs-toggle="tab" data-bs-target="#dataset"
                                         type="button" role="tab" aria-controls="dataset" aria-selected="true">
                                     Dataset
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results" 
+                                <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results"
                                         type="button" role="tab" aria-controls="results" aria-selected="false">
                                     Results
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="viz-tab" data-bs-toggle="tab" data-bs-target="#visualizations" 
+                                <button class="nav-link" id="viz-tab" data-bs-toggle="tab" data-bs-target="#visualizations"
                                         type="button" role="tab" aria-controls="visualizations" aria-selected="false">
                                     Visualizations
                                 </button>
@@ -285,11 +293,11 @@
                                     </div>
                                 }
                             </div>
-                            
+
                             <!-- Analysis Results Tab -->
                             <div class="tab-pane fade" id="results" role="tabpanel" aria-labelledby="results-tab">
                                 <h5>Model Performance</h5>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="card mb-3">
@@ -302,7 +310,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="col-md-6">
                                         <div class="card mb-3">
                                             <div class="card-body">
@@ -325,7 +333,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <h5 class="mt-4">Classification Report</h5>
                                 @if (classificationReport.Count > 0)
                                 {
@@ -362,7 +370,7 @@
                                     </div>
                                 }
                             </div>
-                            
+
                             <!-- Visualizations Tab -->
                             <div class="tab-pane fade" id="visualizations" role="tabpanel" aria-labelledby="viz-tab">
                                 <div class="row">
@@ -379,7 +387,7 @@
                                             </div>
                                         </div>
                                     }
-                                    
+
                                     @if (featureImportance && !string.IsNullOrEmpty(featureImportanceUrl))
                                     {
                                         <div class="col-md-6 mb-4">
@@ -393,7 +401,7 @@
                                             </div>
                                         </div>
                                     }
-                                    
+
                                     @if (!featureImportance && !confusionMatrix)
                                     {
                                         <div class="col-12">
@@ -420,7 +428,7 @@
     private List<Dictionary<string, string>> datasetPreview = new List<Dictionary<string, string>>();
     private int totalRows = 0;
     private string targetVariable = "Hazard Type";
-    
+
     // Drag and drop properties
     private ElementReference dropZoneElement;
     private InputFile inputFile;
@@ -437,11 +445,11 @@
     private bool isAnalysisRunning = false;
     private bool analysisComplete = false;
     private string errorMessage = "";
-    
+
     // Progress tracking
     private int progressValue = 0;
     private List<LogEntry> processingLogs = new List<LogEntry>();
-    
+
     // Results properties
     private double accuracy = 92.7;
     private List<ClassificationReportItem> classificationReport = new List<ClassificationReportItem>();
@@ -453,7 +461,7 @@
         public DateTime Timestamp { get; set; }
         public string Message { get; set; }
     }
-    
+
     private class ClassificationReportItem
     {
         public string Class { get; set; }
@@ -462,18 +470,18 @@
         public double F1Score { get; set; }
         public int Support { get; set; }
     }
-    
+
     // Log message handling
     private void AddLog(string message)
     {
         processingLogs.Add(new LogEntry
-        {
-            Timestamp = DateTime.Now,
-            Message = message
-        });
+            {
+                Timestamp = DateTime.Now,
+                Message = message
+            });
         StateHasChanged();
     }
-    
+
     // File upload handler
     private async Task LoadDataset(InputFileChangeEventArgs e)
     {
@@ -481,16 +489,16 @@
         {
             // Clear any previous errors
             errorMessage = "";
-            
+
             var file = e.File;
             datasetName = file.Name;
-            
+
             // Close any existing file handles
             CleanupTempFile();
-            
+
             // Create a temporary file to store the uploaded data
             var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".csv");
-            
+
             // Use using statement to ensure file is properly closed
             using (var fileStream = new FileStream(tempPath, FileMode.Create))
             {
@@ -501,12 +509,12 @@
                 }
                 // File will be automatically closed after this block
             }
-            
+
             tempFilePath = tempPath;
-            
+
             // Read the first few lines to display preview
             await LoadDatasetPreview();
-            
+
             AddLog("Dataset uploaded successfully: " + datasetName);
         }
         catch (Exception ex)
@@ -516,7 +524,7 @@
             datasetName = "";
         }
     }
-    
+
     // Cleanup temp file
     private void CleanupTempFile()
     {
@@ -540,12 +548,12 @@
         {
             datasetPreview.Clear();
             datasetColumns.Clear();
-            
+
             if (string.IsNullOrEmpty(tempFilePath) || !File.Exists(tempFilePath))
             {
                 return;
             }
-            
+
             // Use using to ensure proper file handling
             using (StreamReader reader = new StreamReader(tempFilePath))
             {
@@ -555,7 +563,7 @@
                 {
                     datasetColumns.AddRange(headerLine.Split(',').Select(c => c.Trim()));
                 }
-                
+
                 // Read first 5 rows for preview
                 int rowCount = 0;
                 while (!reader.EndOfStream && rowCount < 5)
@@ -565,18 +573,18 @@
                     {
                         var values = line.Split(',');
                         var row = new Dictionary<string, string>();
-                        
+
                         for (int i = 0; i < Math.Min(values.Length, datasetColumns.Count); i++)
                         {
                             row[datasetColumns[i]] = values[i];
                         }
-                        
+
                         datasetPreview.Add(row);
                         rowCount++;
                     }
                 }
             }
-            
+
             // Count total rows with a separate reader
             totalRows = 0;
             using (StreamReader countReader = new StreamReader(tempFilePath))
@@ -587,7 +595,7 @@
                 }
             }
             totalRows--; // Subtract header row
-            
+
             AddLog($"Dataset preview loaded: {datasetColumns.Count} columns, {totalRows} total rows");
         }
         catch (Exception ex)
@@ -596,7 +604,7 @@
             Logger.LogError(ex, "Error loading dataset preview");
         }
     }
-    
+
     // Run the analysis
     private async Task RunAnalysis()
     {
@@ -608,16 +616,16 @@
             progressValue = 0;
             classificationReport.Clear();
             processingLogs.Clear();
-            
+
             AddLog("Starting analysis...");
-            
+
             // Create progress callback
-            Action<string> progressCallback = (message) => 
+            Action<string> progressCallback = (message) =>
             {
                 AddLog(message);
                 StateHasChanged();
             };
-            
+
             if (!runActualScript)
             {
                 await SimulateAnalysis();
@@ -631,11 +639,11 @@
                     {
                         throw new FileNotFoundException("Dataset file not found. Please upload again.");
                     }
-                    
+
                     // Make a copy of the file to avoid access issues
                     var workingCopy = Path.Combine(Path.GetTempPath(), "working_" + Path.GetFileName(tempFilePath));
                     File.Copy(tempFilePath, workingCopy, true);
-                    
+
                     try
                     {
                         // Execute the Python model via the service
@@ -646,7 +654,7 @@
                             testSizePercent / 100.0,
                             featureImportance,
                             confusionMatrix,
-                            message => 
+                            message =>
                             {
                                 AddLog(message);
                                 // Update progress based on the stage of execution
@@ -656,7 +664,7 @@
                                 else if (message.Contains("Evaluating")) progressValue = 70;
                                 else if (message.Contains("Generating")) progressValue = 90;
                                 else if (message.Contains("complete")) progressValue = 100;
-                                else if (message.Contains("simulation")) 
+                                else if (message.Contains("simulation"))
                                 {
                                     // If we're using simulated results, let the user know
                                     AddLog("Note: Using simulated results as fallback");
@@ -664,7 +672,7 @@
                                 StateHasChanged();
                             }
                         );
-                        
+
                         if (!result.Success)
                         {
                             AddLog($"Warning: {result.Error ?? "Unknown error during model execution"}");
@@ -678,7 +686,7 @@
                             {
                                 accuracy = Convert.ToDouble(result.Metrics["accuracy"]) * 100;
                             }
-                            
+
                             // Process classification report
                             if (result.Metrics != null && result.Metrics.ContainsKey("classification_report"))
                             {
@@ -686,15 +694,15 @@
                                 {
                                     var reportJson = result.Metrics["classification_report"].ToString();
                                     var report = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(reportJson);
-                                    
+
                                     classificationReport = report.Select(item => new ClassificationReportItem
-                                    {
-                                        Class = item["class"].ToString(),
-                                        Precision = Convert.ToDouble(item["precision"]),
-                                        Recall = Convert.ToDouble(item["recall"]),
-                                        F1Score = Convert.ToDouble(item["f1_score"]),
-                                        Support = Convert.ToInt32(item["support"])
-                                    }).ToList();
+                                        {
+                                            Class = item["class"].ToString(),
+                                            Precision = Convert.ToDouble(item["precision"]),
+                                            Recall = Convert.ToDouble(item["recall"]),
+                                            F1Score = Convert.ToDouble(item["f1_score"]),
+                                            Support = Convert.ToInt32(item["support"])
+                                        }).ToList();
                                 }
                                 catch (Exception ex)
                                 {
@@ -708,7 +716,7 @@
                                 // If no classification report was returned, use simulated data
                                 PopulateSimulatedClassificationReport();
                             }
-                            
+
                             // Get visualization URLs
                             if (result.Visualizations != null)
                             {
@@ -722,7 +730,7 @@
                                     // Use default visualization if not provided
                                     confusionMatrixUrl = "/model_output/sample_confusion_matrix.png";
                                 }
-                                
+
                                 if (result.Visualizations.ContainsKey("feature_importance"))
                                 {
                                     var featureImportanceFile = result.Visualizations["feature_importance"].ToString();
@@ -763,14 +771,14 @@
                     Logger.LogError(ex, "Error running Python script. Falling back to simulation.");
                     AddLog($"Error running Python script: {ex.Message}");
                     AddLog("Falling back to simulated analysis...");
-                    
+
                     // Fall back to simulation if there's an error
                     await SimulateAnalysis();
                 }
             }
-            
+
             await UpdateProgress(100, "Analysis complete");
-            
+
             analysisComplete = true;
             isAnalysisRunning = false;
         }
@@ -781,33 +789,33 @@
             isAnalysisRunning = false;
         }
     }
-    
+
     // Helper method to run a simulated analysis
     private async Task SimulateAnalysis()
     {
         // Simulate processing steps
         await UpdateProgress(10, "Loading dataset");
         await Task.Delay(500);
-        
+
         await UpdateProgress(30, "Preprocessing data");
         await Task.Delay(500);
-        
+
         await UpdateProgress(50, "Training Random Forest model");
         await Task.Delay(1000);
-        
+
         await UpdateProgress(70, "Evaluating model performance");
         await Task.Delay(500);
-        
+
         await UpdateProgress(90, "Generating visualizations");
         await Task.Delay(500);
-        
+
         // Populate the classification report with sample data
         PopulateSimulatedClassificationReport();
-        
+
         // Set sample visualization URLs - using relative paths that would work in your wwwroot
         confusionMatrixUrl = "/model_output/sample_confusion_matrix.png";
         featureImportanceUrl = "/model_output/sample_feature_importance.png";
-        
+
         accuracy = new Random().Next(88, 98) + new Random().NextDouble(); // Generate random accuracy for demo
     }
 
@@ -822,79 +830,276 @@
             new ClassificationReportItem { Class = "Avalanche", Precision = 0.94, Recall = 0.88, F1Score = 0.91, Support = 17 }
         };
     }
-    
+
     private async Task UpdateProgress(int progress, string message)
     {
         progressValue = progress;
         AddLog(message);
         await Task.Delay(100); // Small delay to ensure UI updates
     }
-    
+
     // Drag and drop handlers
     private void HandleDragEnter()
     {
         dropClass = "drag-drop-zone-active";
     }
-    
+
     private void HandleDragLeave()
     {
         dropClass = "";
     }
-    
+
     private async Task HandleDrop(DragEventArgs e)
     {
         dropClass = "";
-        
+
         // JavaScript interop is used here because Blazor doesn't natively support handling file drops
         // We trigger the InputFile element's change event
         await JS.InvokeVoidAsync("triggerFileInput", inputFile.Element);
     }
-    
+
     private async Task BrowseFiles()
     {
         await JS.InvokeVoidAsync("triggerFileInput", inputFile.Element);
     }
-    
+
     // Export functions
     private async Task ExportPDF()
     {
         try
         {
             AddLog("Exporting results to PDF...");
-            await JS.InvokeVoidAsync("alert", "PDF export functionality would be implemented here");
+
+            // Create a formatted HTML document for printing
+            var htmlContent = new StringBuilder();
+
+            // Add header
+            htmlContent.AppendLine("<h1>Disaster Risk Analysis Results</h1>");
+
+            // Add dataset information
+            htmlContent.AppendLine("<h2>Dataset Information</h2>");
+            htmlContent.AppendLine("<p><strong>Dataset:</strong> " + datasetName + "</p>");
+            htmlContent.AppendLine("<p><strong>Total Rows:</strong> " + totalRows + "</p>");
+            htmlContent.AppendLine("<p><strong>Total Columns:</strong> " + datasetColumns.Count + "</p>");
+
+            // Add model parameters
+            htmlContent.AppendLine("<h2>Model Parameters</h2>");
+            htmlContent.AppendLine("<table>");
+            htmlContent.AppendLine("<tr><th>Parameter</th><th>Value</th></tr>");
+            htmlContent.AppendLine("<tr><td>Algorithm</td><td>Random Forest</td></tr>");
+            htmlContent.AppendLine("<tr><td>Number of Trees</td><td>" + numTrees + "</td></tr>");
+            htmlContent.AppendLine("<tr><td>Test Split</td><td>" + testSizePercent + "%</td></tr>");
+            htmlContent.AppendLine("</table>");
+
+            // Add model performance
+            htmlContent.AppendLine("<h2>Model Performance</h2>");
+            htmlContent.AppendLine("<div class='metric'>Accuracy: " + accuracy.ToString("0.00") + "%</div>");
+
+            // Add classification report
+            if (classificationReport.Count > 0)
+            {
+                htmlContent.AppendLine("<h2>Classification Report</h2>");
+                htmlContent.AppendLine("<table>");
+                htmlContent.AppendLine("<tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1-Score</th><th>Support</th></tr>");
+
+                foreach (var item in classificationReport)
+                {
+                    htmlContent.AppendLine("<tr>");
+                    htmlContent.AppendLine("<td>" + item.Class + "</td>");
+                    htmlContent.AppendLine("<td>" + item.Precision.ToString("0.00") + "</td>");
+                    htmlContent.AppendLine("<td>" + item.Recall.ToString("0.00") + "</td>");
+                    htmlContent.AppendLine("<td>" + item.F1Score.ToString("0.00") + "</td>");
+                    htmlContent.AppendLine("<td>" + item.Support + "</td>");
+                    htmlContent.AppendLine("</tr>");
+                }
+
+                htmlContent.AppendLine("</table>");
+            }
+
+            // Add visualizations
+            if (!string.IsNullOrEmpty(confusionMatrixUrl))
+            {
+                htmlContent.AppendLine("<h2>Confusion Matrix</h2>");
+                htmlContent.AppendLine("<div class='img-container'>");
+                htmlContent.AppendLine("<img src='" + confusionMatrixUrl + "' alt='Confusion Matrix' />");
+                htmlContent.AppendLine("</div>");
+            }
+
+            if (!string.IsNullOrEmpty(featureImportanceUrl))
+            {
+                htmlContent.AppendLine("<h2>Feature Importance</h2>");
+                htmlContent.AppendLine("<div class='img-container'>");
+                htmlContent.AppendLine("<img src='" + featureImportanceUrl + "' alt='Feature Importance' />");
+                htmlContent.AppendLine("</div>");
+            }
+
+            // Generate filename with timestamp
+            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            string fileName = $"DisasterRiskAnalysis_{timestamp}.pdf";
+
+            // Call JavaScript function to export to PDF
+            bool success = await JS.InvokeAsync<bool>("exportToPdf", "Disaster Risk Analysis", htmlContent.ToString(), fileName);
+
+            if (success)
+            {
+                AddLog("PDF export successful");
+            }
+            else
+            {
+                errorMessage = "Failed to generate PDF";
+            }
         }
         catch (Exception ex)
         {
             errorMessage = "Error exporting to PDF: " + ex.Message;
+            Logger.LogError(ex, "Error exporting to PDF");
         }
     }
-    
+
     private async Task ExportCSV()
     {
         try
         {
             AddLog("Exporting results to CSV...");
-            await JS.InvokeVoidAsync("alert", "CSV export functionality would be implemented here");
+
+            var csvBuilder = new StringBuilder();
+
+            // Add metadata
+            csvBuilder.AppendLine("# Disaster Risk Analysis Results");
+            csvBuilder.AppendLine("# Dataset: " + datasetName);
+            csvBuilder.AppendLine("# Generated: " + DateTime.Now.ToString());
+            csvBuilder.AppendLine("# ");
+
+            // Add model parameters
+            csvBuilder.AppendLine("# Model Parameters");
+            csvBuilder.AppendLine("Algorithm,Random Forest");
+            csvBuilder.AppendLine("Number of Trees," + numTrees);
+            csvBuilder.AppendLine("Test Split," + testSizePercent + "%");
+            csvBuilder.AppendLine("Accuracy," + accuracy.ToString("0.00") + "%");
+            csvBuilder.AppendLine();
+
+            // Add classification report
+            if (classificationReport.Count > 0)
+            {
+                csvBuilder.AppendLine("# Classification Report");
+                csvBuilder.AppendLine("Class,Precision,Recall,F1-Score,Support");
+
+                foreach (var item in classificationReport)
+                {
+                    csvBuilder.AppendLine(string.Join(",",
+                        item.Class,
+                        item.Precision.ToString("0.00"),
+                        item.Recall.ToString("0.00"),
+                        item.F1Score.ToString("0.00"),
+                        item.Support
+                    ));
+                }
+            }
+
+            // Generate filename with timestamp
+            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            string fileName = $"DisasterRiskAnalysis_{timestamp}.csv";
+
+            // Call JavaScript function to export to CSV
+            bool success = await JS.InvokeAsync<bool>("exportToCsv", csvBuilder.ToString(), fileName);
+
+            if (success)
+            {
+                AddLog("CSV export successful");
+            }
+            else
+            {
+                errorMessage = "Failed to generate CSV";
+            }
         }
         catch (Exception ex)
         {
             errorMessage = "Error exporting to CSV: " + ex.Message;
+            Logger.LogError(ex, "Error exporting to CSV");
         }
     }
-    
+
     private async Task ExportJSON()
     {
         try
         {
             AddLog("Exporting results to JSON...");
-            await JS.InvokeVoidAsync("alert", "JSON export functionality would be implemented here");
+
+            // Create a data object to serialize
+            var exportData = new
+            {
+                Metadata = new
+                {
+                    Dataset = datasetName,
+                    GeneratedAt = DateTime.Now.ToString(),
+                    TotalRows = totalRows,
+                    TotalColumns = datasetColumns.Count
+                },
+                ModelParameters = new
+                {
+                    Algorithm = "Random Forest",
+                    NumberOfTrees = numTrees,
+                    TestSplit = testSizePercent,
+                    FeatureImportance = featureImportance,
+                    ConfusionMatrix = confusionMatrix
+                },
+                Performance = new
+                {
+                    Accuracy = accuracy
+                },
+                ClassificationReport = classificationReport.Select(item => new
+                {
+                    Class = item.Class,
+                    Precision = item.Precision,
+                    Recall = item.Recall,
+                    F1Score = item.F1Score,
+                    Support = item.Support
+                }).ToList(),
+                Visualizations = new
+                {
+                    ConfusionMatrix = confusionMatrixUrl,
+                    FeatureImportance = featureImportanceUrl
+                }
+            };
+
+            // Serialize to JSON
+            string jsonString = JsonSerializer.Serialize(exportData, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+
+            // Generate filename with timestamp
+            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            string fileName = $"DisasterRiskAnalysis_{timestamp}.json";
+
+            // Call JavaScript function to export to JSON
+            bool success = await JS.InvokeAsync<bool>("exportToJson", jsonString, fileName);
+
+            if (success)
+            {
+                AddLog("JSON export successful");
+            }
+            else
+            {
+                errorMessage = "Failed to generate JSON";
+            }
         }
         catch (Exception ex)
         {
             errorMessage = "Error exporting to JSON: " + ex.Message;
+            Logger.LogError(ex, "Error exporting to JSON");
         }
     }
-    
+
+    // Helper function to get absolute URL for images
+    private string GetAbsoluteUrl(string relativeUrl)
+    {
+        // In a real implementation, this would build a proper absolute URL
+        // For simplicity, we'll just return the relative URL which works for the PDF export
+        // because it's shown in the same domain
+        return relativeUrl;
+    }
+
     // Lifecycle methods
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -904,7 +1109,7 @@
             await JS.InvokeVoidAsync("initializeDragDrop");
         }
     }
-    
+
     public void Dispose()
     {
         // Clean up temporary files when component is disposed
