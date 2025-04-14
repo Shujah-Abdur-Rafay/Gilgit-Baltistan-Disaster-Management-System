@@ -17,6 +17,8 @@ namespace GBDMS.Data
             _connection.CreateTableAsync<User>();
             _connection.CreateTableAsync<InventoryItem>();
             _connection.CreateTableAsync<Incident>();
+            _connection.CreateTableAsync<DamageRecord>();
+            _connection.CreateTableAsync<NgoEntity>();
         }
         public SQLiteAsyncConnection GetConnection() => _connection;
     }

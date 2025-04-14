@@ -10,11 +10,11 @@
     border-radius: 4px;
     padding: 12px;
     text-align: center;
-    border-left: 4px solid #6c757d;
+    border-left: 4px solid #198754;
 }
 
 .stat-box.total-damage {
-    border-left: 4px solid #dc3545;
+    border-left: 4px solid #0f5132;
     margin-bottom: 12px;
 }
 
@@ -27,6 +27,7 @@
 .stat-value {
     font-size: 1.2rem;
     font-weight: bold;
+    color: #198754;
 }
 
 /* Category Distribution */
@@ -58,7 +59,7 @@
 }
 
 .table tbody tr:hover {
-    background-color: rgba(0, 123, 255, 0.05);
+    background-color: rgba(25, 135, 84, 0.05);
 }
 
 /* Modal backdrop */
@@ -69,6 +70,16 @@
 /* Form toggle transition */
 .card-body {
     transition: all 0.3s ease;
+}
+
+/* Custom green-themed styles */
+.table-success {
+    background-color: rgba(25, 135, 84, 0.1);
+}
+
+.btn-outline-success:hover {
+    background-color: #198754;
+    color: white;
 }
 
 /* Responsive adjustments */

@@ -1,20 +1,26 @@
 ﻿@page "/losses"
 @inject IJSRuntime JS
+@inject IDamageRepository DamageRepository
+@using GBDMS.Data
 
 <div class="container-fluid">
-    <h2 class="mb-4">Damage and Losses Assessment</h2>
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h2 class="text-center text-success">Damage and Losses Assessment</h2>
+        </div>
+    </div>
 
     <div class="row">
         <!-- Filters and Summary Panel -->
         <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
                     <h5 class="mb-0">Filter and Summary</h5>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label">Disaster Type</label>
-                        <select class="form-select" @bind="selectedDisasterType">
+                        <select class="form-select border-success" @bind="selectedDisasterType">
                             <option value="">All Disaster Types</option>
                             <option value="Earthquake">Earthquake</option>
                             <option value="Flood">Flood</option>
@@ -27,7 +33,7 @@
                     
                     <div class="mb-3">
                         <label class="form-label">District</label>
-                        <select class="form-select" @bind="selectedDistrict">
+                        <select class="form-select border-success" @bind="selectedDistrict">
                             <option value="">All Districts</option>
                             <option value="Gilgit">Gilgit</option>
                             <option value="Skardu">Skardu</option>
@@ -43,18 +49,18 @@
                     <div class="mb-3">
                         <label class="form-label">Date Range</label>
                         <div class="input-group mb-2">
-                            <span class="input-group-text">From</span>
-                            <input type="date" class="form-control" @bind="startDate">
+                            <span class="input-group-text bg-success text-white">From</span>
+                            <input type="date" class="form-control border-success" @bind="startDate">
                         </div>
                         <div class="input-group">
-                            <span class="input-group-text">To</span>
-                            <input type="date" class="form-control" @bind="endDate">
+                            <span class="input-group-text bg-success text-white">To</span>
+                            <input type="date" class="form-control border-success" @bind="endDate">
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Damage Category</label>
-                        <select class="form-select" @bind="selectedCategory">
+                        <select class="form-select border-success" @bind="selectedCategory">
                             <option value="">All Categories</option>
                             <option value="Infrastructure">Infrastructure</option>
                             <option value="Housing">Housing</option>
@@ -66,7 +72,7 @@
                         </select>
                     </div>
 
-                    <button class="btn btn-primary w-100" @onclick="ApplyFilters">
+                    <button class="btn btn-success w-100" @onclick="ApplyFilters">
                         <i class="bi bi-funnel-fill"></i> Apply Filters
                     </button>
                     
@@ -129,7 +135,7 @@
         <!-- Damage Records and Form -->
         <div class="col-md-8">
             <!-- Entry Form -->
-            <div class="card mb-4">
+            <div class="card border-success mb-4">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Record New Damage/Loss</h5>
                     <button class="btn btn-sm btn-light" @onclick="ToggleForm">
@@ -144,13 +150,13 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label">Title/Description</label>
-                                        <input type="text" class="form-control" @bind="newDamage.Title" required>
+                                        <input type="text" class="form-control border-success" @bind="newDamage.Title" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label">Disaster Type</label>
-                                        <select class="form-select" @bind="newDamage.DisasterType" required>
+                                        <select class="form-select border-success" @bind="newDamage.DisasterType" required>
                                             <option value="">Select Type</option>
                                             <option value="Earthquake">Earthquake</option>
                                             <option value="Flood">Flood</option>
@@ -167,7 +173,7 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label">District</label>
-                                        <select class="form-select" @bind="newDamage.District" required>
+                                        <select class="form-select border-success" @bind="newDamage.District" required>
                                             <option value="">Select District</option>
                                             <option value="Gilgit">Gilgit</option>
                                             <option value="Skardu">Skardu</option>
@@ -183,7 +189,7 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label">Specific Location</label>
-                                        <input type="text" class="form-control" @bind="newDamage.Location">
+                                        <input type="text" class="form-control border-success" @bind="newDamage.Location">
                                     </div>
                                 </div>
                             </div>
@@ -192,13 +198,13 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label">Date of Incident</label>
-                                        <input type="date" class="form-control" @bind="newDamage.Date" required>
+                                        <input type="date" class="form-control border-success" @bind="newDamage.Date" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label">Damage Category</label>
-                                        <select class="form-select" @bind="newDamage.Category" required>
+                                        <select class="form-select border-success" @bind="newDamage.Category" required>
                                             <option value="">Select Category</option>
                                             <option value="Infrastructure">Infrastructure</option>
                                             <option value="Housing">Housing</option>
@@ -216,13 +222,13 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label">Financial Loss (PKR)</label>
-                                        <input type="number" class="form-control" @bind="newDamage.FinancialLoss" min="0">
+                                        <input type="number" class="form-control border-success" @bind="newDamage.FinancialLoss" min="0">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label">Severity</label>
-                                        <select class="form-select" @bind="newDamage.Severity">
+                                        <select class="form-select border-success" @bind="newDamage.Severity">
                                             <option value="Low">Low</option>
                                             <option value="Medium">Medium</option>
                                             <option value="High">High</option>
@@ -234,7 +240,7 @@
                             
                             <div class="mb-3">
                                 <label class="form-label">Detailed Description</label>
-                                <textarea class="form-control" rows="3" @bind="newDamage.Description"></textarea>
+                                <textarea class="form-control border-success" rows="3" @bind="newDamage.Description"></textarea>
                             </div>
                             
                             <div class="form-check mb-3">
@@ -245,7 +251,7 @@
                             </div>
                             
                             <div class="d-flex justify-content-end">
-                                <button type="button" class="btn btn-secondary me-2" @onclick="ResetForm">Clear</button>
+                                <button type="button" class="btn btn-outline-success me-2" @onclick="ResetForm">Clear</button>
                                 <button type="button" class="btn btn-success" @onclick="AddDamageRecord">Save Record</button>
                             </div>
                         </form>
@@ -254,30 +260,39 @@
             </div>
             
             <!-- Damage Records Table -->
-            <div class="card">
-                <div class="card-header bg-info text-white">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
                     <h5 class="mb-0">Damage and Loss Records</h5>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover table-striped mb-0">
-                            <thead class="table-light">
+                            <thead class="table-success">
                                 <tr>
                                     <th>Date</th>
                                     <th>Title</th>
                                     <th>Category</th>
                                     <th>District</th>
                                     <th>Financial Loss</th>
-                                    <th>Severity</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @if (filteredDamageList.Count == 0)
+                                @if (loading)
                                 {
                                     <tr>
-                                        <td colspan="8" class="text-center py-3">No damage records found.</td>
+                                        <td colspan="7" class="text-center py-3">
+                                            <div class="spinner-border text-success" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                                else if (filteredDamageList.Count == 0)
+                                {
+                                    <tr>
+                                        <td colspan="7" class="text-center py-3">No damage records found.</td>
                                     </tr>
                                 }
                                 else
@@ -288,17 +303,12 @@
                                             <td>@damage.Date.ToString("yyyy-MM-dd")</td>
                                             <td>@damage.Title</td>
                                             <td>
-                                                <span class="badge rounded-pill @GetCategoryBadgeClass(damage.Category)">
+                                                <span class="badge rounded-pill bg-success text-white">
                                                     @damage.Category
                                                 </span>
                                             </td>
                                             <td>@damage.District</td>
                                             <td>PKR @damage.FinancialLoss.ToString("N0")</td>
-                                            <td>
-                                                <span class="badge bg-@GetSeverityBadgeClass(damage.Severity)">
-                                                    @damage.Severity
-                                                </span>
-                                            </td>
                                             <td>
                                                 @if (damage.IsVerified)
                                                 {
@@ -310,10 +320,10 @@
                                                 }
                                             </td>
                                             <td>
-                                                <button class="btn btn-sm btn-info me-1" @onclick="() => ViewDetails(damage)">
+                                                <button class="btn btn-sm btn-outline-success me-1" @onclick="() => ViewDetails(damage)">
                                                     <i class="bi bi-eye"></i>
                                                 </button>
-                                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteRecord(damage)">
+                                                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteRecord(damage)">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </td>
@@ -333,8 +343,8 @@
 {
     <div class="modal fade show" style="display: block;" tabindex="-1">
         <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
+            <div class="modal-content border-success">
+                <div class="modal-header bg-success text-white">
                     <h5 class="modal-title">Damage Details</h5>
                     <button type="button" class="btn-close" @onclick="CloseDetailsModal"></button>
                 </div>
@@ -369,7 +379,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="CloseDetailsModal">Close</button>
+                    <button type="button" class="btn btn-outline-success" @onclick="CloseDetailsModal">Close</button>
                 </div>
             </div>
         </div>
@@ -394,28 +404,49 @@
     private List<DamageRecord> filteredDamageList = new();
     private double totalFinancialLoss = 0;
     private Dictionary<string, double> categoryDistribution = new();
+    private bool loading = true;
     
     // Modal properties
     private DamageRecord? selectedDamage;
     
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        // Initialize with sample data
-        InitializeSampleData();
-        
-        // Apply initial filters
-        ApplyFilters();
+        await LoadDamageRecords();
     }
     
-    private void InitializeSampleData()
+    private async Task LoadDamageRecords()
     {
-        var random = new Random();
+        loading = true;
         
-        damageList = new List<DamageRecord>
+        try
+        {
+            damageList = await DamageRepository.GetAllAsync();
+            
+            // If no records found, add sample data (only for first run)
+            if (damageList.Count == 0)
+            {
+                await InitializeSampleData();
+                damageList = await DamageRepository.GetAllAsync();
+            }
+            
+            await ApplyFilters();
+        }
+        catch (Exception)
+        {
+            // Handle error
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+    
+    private async Task InitializeSampleData()
+    {
+        var sampleData = new List<DamageRecord>
         {
             new DamageRecord
             {
-                Id = 1,
                 Title = "Bridge Collapse in Gilgit City",
                 DisasterType = "Flood",
                 District = "Gilgit",
@@ -424,12 +455,11 @@
                 Category = "Infrastructure",
                 FinancialLoss = 15000000,
                 Severity = "High",
-                Description = "The main bridge connecting the eastern and western parts of Gilgit city collapsed due to heavy flooding. The bridge was already in poor condition and needs complete reconstruction.",
+                Description = "The main bridge connecting the eastern and western parts of Gilgit city collapsed due to heavy flooding.",
                 IsVerified = true
             },
             new DamageRecord
             {
-                Id = 2,
                 Title = "Agricultural Lands Damaged in Ghizer",
                 DisasterType = "Flood",
                 District = "Ghizer",
@@ -438,12 +468,11 @@
                 Category = "Agriculture",
                 FinancialLoss = 4500000,
                 Severity = "Medium",
-                Description = "Approximately 120 acres of fertile agricultural land was damaged by flash floods. Crops including wheat, potatoes, and vegetables were completely destroyed just before harvest season.",
+                Description = "Approximately 120 acres of fertile agricultural land was damaged by flash floods.",
                 IsVerified = true
             },
             new DamageRecord
             {
-                Id = 3,
                 Title = "Primary School Building Damaged",
                 DisasterType = "Earthquake",
                 District = "Skardu",
@@ -452,82 +481,50 @@
                 Category = "Education",
                 FinancialLoss = 7800000,
                 Severity = "Medium",
-                Description = "The main building of Government Primary School was significantly damaged with cracks in walls and ceiling. The building needs major repairs before it can be used safely.",
+                Description = "The main building of Government Primary School was significantly damaged with cracks in walls and ceiling.",
                 IsVerified = false
-            },
-            new DamageRecord
-            {
-                Id = 4,
-                Title = "Residential Area Affected by Landslide",
-                DisasterType = "Landslide",
-                District = "Hunza",
-                Location = "Nagar Valley, Northern Area",
-                Date = DateTime.Now.AddDays(-8),
-                Category = "Housing",
-                FinancialLoss = 22500000,
-                Severity = "Severe",
-                Description = "A major landslide destroyed 12 houses completely and damaged 18 others. Approximately 30 families were displaced and need immediate housing assistance.",
-                IsVerified = true
-            },
-            new DamageRecord
-            {
-                Id = 5,
-                Title = "Hospital Equipment Damaged",
-                DisasterType = "Flood",
-                District = "Astore",
-                Location = "District Hospital",
-                Date = DateTime.Now.AddDays(-5),
-                Category = "Healthcare",
-                FinancialLoss = 9200000,
-                Severity = "High",
-                Description = "Flooding in the basement of the district hospital damaged critical medical equipment including generators, X-ray machines, and laboratory equipment.",
-                IsVerified = false
-            },
-            new DamageRecord
-            {
-                Id = 6,
-                Title = "Market Area Damaged by Fire",
-                DisasterType = "Other",
-                District = "Gilgit",
-                Location = "Central Market",
-                Date = DateTime.Now.AddDays(-3),
-                Category = "Commercial",
-                FinancialLoss = 35000000,
-                Severity = "Severe",
-                Description = "A fire that started in one shop quickly spread to nearby buildings, affecting 28 shops in the central market area. Major goods and property were damaged.",
-                IsVerified = true
-            },
-            new DamageRecord
-            {
-                Id = 7,
-                Title = "Road Network Damaged by Avalanche",
-                DisasterType = "Avalanche",
-                District = "Ghanche",
-                Location = "Khaplu-Skardu Road",
-                Date = DateTime.Now.AddDays(-15),
-                Category = "Infrastructure",
-                FinancialLoss = 12500000,
-                Severity = "High",
-                Description = "A major avalanche blocked and damaged approximately 3 km stretch of the road connecting Khaplu to Skardu. Road needs major repairs and protective structures.",
-                IsVerified = true
             }
         };
+        
+        foreach (var item in sampleData)
+        {
+            await DamageRepository.CreateAsync(item);
+        }
     }
     
-    private void ApplyFilters()
+    private async Task ApplyFilters()
     {
-        filteredDamageList = damageList.Where(d =>
-            (string.IsNullOrEmpty(selectedDisasterType) || d.DisasterType == selectedDisasterType) &&
-            (string.IsNullOrEmpty(selectedDistrict) || d.District == selectedDistrict) &&
-            (string.IsNullOrEmpty(selectedCategory) || d.Category == selectedCategory) &&
-            (d.Date >= startDate && d.Date <= endDate)
-        ).ToList();
+        loading = true;
         
-        // Calculate total financial loss
-        totalFinancialLoss = filteredDamageList.Sum(d => d.FinancialLoss);
-        
-        // Calculate category distribution
-        CalculateCategoryDistribution();
+        try
+        {
+            if (!string.IsNullOrEmpty(selectedDisasterType))
+            {
+                filteredDamageList = await DamageRepository.GetByDisasterTypeAsync(selectedDisasterType);
+            }
+            else if (!string.IsNullOrEmpty(selectedDistrict))
+            {
+                filteredDamageList = await DamageRepository.GetByDistrictAsync(selectedDistrict);
+            }
+            else if (!string.IsNullOrEmpty(selectedCategory))
+            {
+                filteredDamageList = await DamageRepository.GetByCategoryAsync(selectedCategory);
+            }
+            else
+            {
+                filteredDamageList = await DamageRepository.GetByDateRangeAsync(startDate, endDate);
+            }
+            
+            // Calculate total financial loss
+            totalFinancialLoss = filteredDamageList.Sum(d => d.FinancialLoss);
+            
+            // Calculate category distribution
+            CalculateCategoryDistribution();
+        }
+        finally
+        {
+            loading = false;
+        }
     }
     
     private void CalculateCategoryDistribution()
@@ -567,7 +564,7 @@
         };
     }
     
-    private void AddDamageRecord()
+    private async Task AddDamageRecord()
     {
         if (string.IsNullOrWhiteSpace(newDamage.Title) || 
             string.IsNullOrWhiteSpace(newDamage.DisasterType) ||
@@ -578,20 +575,24 @@
             return;
         }
         
-        // Generate new Id
-        newDamage.Id = damageList.Count > 0 ? damageList.Max(d => d.Id) + 1 : 1;
-        
-        // Add to list
-        damageList.Add(newDamage);
-        
-        // Apply filters to update the view
-        ApplyFilters();
-        
-        // Reset the form
-        ResetForm();
-        
-        // Hide the form
-        showForm = false;
+        try
+        {
+            // Add to database
+            await DamageRepository.CreateAsync(newDamage);
+            
+            // Refresh the list
+            await LoadDamageRecords();
+            
+            // Reset the form
+            ResetForm();
+            
+            // Hide the form
+            showForm = false;
+        }
+        catch (Exception)
+        {
+            // Handle error
+        }
     }
     
     private void ViewDetails(DamageRecord damage)
@@ -604,20 +605,28 @@
         selectedDamage = null;
     }
     
-    private void DeleteRecord(DamageRecord damage)
+    private async Task DeleteRecord(DamageRecord damage)
     {
-        damageList.Remove(damage);
-        filteredDamageList.Remove(damage);
-        ApplyFilters();
+        try
+        {
+            await DamageRepository.DeleteAsync(damage.Id);
+            await LoadDamageRecords();
+        }
+        catch (Exception)
+        {
+            // Handle error
+        }
     }
     
-    private void UpdateVerificationStatus()
+    private async Task UpdateVerificationStatus()
     {
-        // Find the original record and update it
-        var record = damageList.FirstOrDefault(d => d.Id == selectedDamage.Id);
-        if (record != null)
+        try
         {
-            record.IsVerified = selectedDamage.IsVerified;
+            await DamageRepository.UpdateAsync(selectedDamage);
+        }
+        catch (Exception)
+        {
+            // Handle error
         }
     }
     
@@ -659,20 +668,5 @@
             "Severe" => "dark",
             _ => "secondary"
         };
-    }
-    
-    private class DamageRecord
-    {
-        public int Id { get; set; }
-        public string Title { get; set; } = "";
-        public string DisasterType { get; set; } = "";
-        public string District { get; set; } = "";
-        public string Location { get; set; } = "";
-        public DateTime Date { get; set; } = DateTime.Now;
-        public string Category { get; set; } = "";
-        public double FinancialLoss { get; set; } = 0;
-        public string Severity { get; set; } = "Medium";
-        public string Description { get; set; } = "";
-        public bool IsVerified { get; set; } = false;
     }
 }

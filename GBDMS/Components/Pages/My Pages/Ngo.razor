@@ -1,14 +1,18 @@
 ﻿@page "/ngo"
 @inject IJSRuntime JS
+@inject INgoRepository _ngoRepository
 
 <div class="container-fluid">
-    <h2 class="mb-4">NGO Mapping in Gilgit-Baltistan</h2>
+    <div class="page-header">
+        <h2>NGO Mapping in Gilgit-Baltistan</h2>
+        <p class="text-muted">Track and coordinate NGO activities across the region</p>
+    </div>
 
     <div class="row">
         <!-- Filters & Stats Panel -->
         <div class="col-md-3 mb-4">
             <div class="card">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-success text-white">
                     <h5 class="mb-0">Filters</h5>
                 </div>
                 <div class="card-body">
@@ -53,7 +57,7 @@
                         </select>
                     </div>
                     
-                    <button class="btn btn-primary w-100" @onclick="ApplyFilters">
+                    <button class="btn btn-success w-100" @onclick="ApplyFilters">
                         <i class="bi bi-funnel-fill"></i> Apply Filters
                     </button>
                     
@@ -79,28 +83,6 @@
                             <div class="stats-item">
                                 <div class="stats-label">Local</div>
                                 <div class="stats-value small">@filteredNgos.Count(n => n.Type == "Local")</div>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-3">
-                            <h6 class="text-muted">Focus Areas Distribution</h6>
-                            <div class="focus-areas-chart">
-                                @foreach (var area in focusAreaDistribution)
-                                {
-                                    <div class="focus-area-item">
-                                        <div class="area-label">@area.Key</div>
-                                        <div class="progress">
-                                            <div class="progress-bar @GetFocusAreaColor(area.Key)" 
-                                                 role="progressbar" 
-                                                 style="width: @(area.Value)%" 
-                                                 aria-valuenow="@area.Value" 
-                                                 aria-valuemin="0" 
-                                                 aria-valuemax="100">
-                                                @(area.Value)%
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
                             </div>
                         </div>
                     </div>
@@ -148,7 +130,7 @@
             
             <!-- NGO Listing -->
             <div class="card">
-                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">NGO Registry</h5>
                     <button class="btn btn-sm btn-light" @onclick="ToggleAddNgoForm">
                         <i class="bi bi-plus-circle"></i> Add NGO
@@ -200,15 +182,6 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Location (Address)</label>
-                                        <input type="text" class="form-control" @bind="newNgo.Location">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
                                         <label class="form-label">Primary Focus Area</label>
                                         <select class="form-select" @bind="newNgo.PrimaryFocusArea" required>
                                             <option value="">Select Focus Area</option>
@@ -223,46 +196,20 @@
                                         </select>
                                     </div>
                                 </div>
+                            </div>
+                            
+                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label">Contact Phone</label>
                                         <input type="tel" class="form-control" @bind="newNgo.ContactPhone">
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label">Email</label>
                                         <input type="email" class="form-control" @bind="newNgo.Email">
                                     </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">Website</label>
-                                        <input type="url" class="form-control" @bind="newNgo.Website">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Secondary Focus Areas (Select multiple)</label>
-                                <div class="focus-areas-checkboxes">
-                                    @foreach (var area in focusAreas)
-                                    {
-                                        @if (area != newNgo.PrimaryFocusArea)
-                                        {
-                                            <div class="form-check form-check-inline">
-                                                <input class="form-check-input" type="checkbox" 
-                                                    id="focus_@area.Replace(spaceChar, underscoreChar)" 
-                                                    value="@area" 
-                                                    checked="@secondaryFocusAreas.Contains(area)"
-                                                    @onchange="@(e => HandleSecondaryFocusAreaToggle(area, e))">
-                                                <label class="form-check-label" for="focus_@area.Replace(spaceChar, underscoreChar)">@area</label>
-                                            </div>
-                                        }
-                                    }
                                 </div>
                             </div>
                             
@@ -312,7 +259,7 @@
                                             <td>@ngo.PrimaryFocusArea</td>
                                             <td>@ngo.ContactPhone</td>
                                             <td>
-                                                <button class="btn btn-sm btn-info me-1" @onclick="() => ViewNgoDetails(ngo)">
+                                                <button class="btn btn-sm btn-success me-1" @onclick="() => ViewNgoDetails(ngo)">
                                                     <i class="bi bi-eye"></i>
                                                 </button>
                                                 <button class="btn btn-sm btn-danger" @onclick="() => DeleteNgo(ngo)">
@@ -336,7 +283,7 @@
     <div class="modal fade show" style="display: block;" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header bg-success text-white">
                     <h5 class="modal-title">NGO Details</h5>
                     <button type="button" class="btn-close" @onclick="CloseNgoDetailsModal"></button>
                 </div>
@@ -350,10 +297,10 @@
                             
                             <h6 class="text-muted">Focus Areas</h6>
                             <div class="mb-3">
-                                <span class="badge bg-primary me-1">@selectedNgo.PrimaryFocusArea</span>
+                                <span class="badge bg-success me-1">@selectedNgo.PrimaryFocusArea</span>
                                 @foreach (var area in selectedNgo.SecondaryFocusAreas)
                                 {
-                                    <span class="badge bg-secondary me-1">@area</span>
+                                    <span class="badge bg-success-subtle text-success me-1">@area</span>
                                 }
                             </div>
                             
@@ -387,11 +334,6 @@
                                     }
                                 </ul>
                             </div>
-                            
-                            <div class="district-coverage-card mt-3">
-                                <h6 class="text-muted">District Coverage</h6>
-                                <div class="district-map" id="ngoDetailMap"></div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -413,12 +355,10 @@
     // Data lists
     private List<NgoEntity> ngoList = new();
     private List<NgoEntity> filteredNgos = new();
-    private Dictionary<string, double> focusAreaDistribution = new();
     
     // Form properties
     private bool showAddNgoForm = false;
     private NgoEntity newNgo = new();
-    private List<string> secondaryFocusAreas = new();
     
     // Modal properties
     private NgoEntity? selectedNgo;
@@ -445,10 +385,39 @@
         "Infrastructure"
     };
     
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        InitializeSampleData();
+        await LoadNgosFromDatabase();
         ApplyFilters();
+    }
+    
+    private async Task LoadNgosFromDatabase()
+    {
+        try
+        {
+            var ngos = await _ngoRepository.GetAllAsync();
+            
+            if (ngos.Any())
+            {
+                ngoList = ngos.ToList();
+            }
+            else
+            {
+                // Load sample data if database is empty
+                InitializeSampleData();
+                
+                // Save sample data to database
+                foreach (var ngo in ngoList)
+                {
+                    await _ngoRepository.CreateAsync(ngo);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading NGOs: {ex.Message}");
+            InitializeSampleData();
+        }
     }
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -456,11 +425,6 @@
         if (firstRender)
         {
             await InitializeMap();
-        }
-        
-        if (selectedNgo != null)
-        {
-            await InitializeDetailMap();
         }
     }
     
@@ -470,13 +434,12 @@
         {
             new NgoEntity
             {
-                Id = 1,
                 Name = "Aga Khan Foundation",
                 Type = "International",
                 District = "Gilgit",
                 Location = "Koenigs Allee, Gilgit City",
                 PrimaryFocusArea = "Education",
-                SecondaryFocusAreas = new List<string> { "Healthcare", "Agriculture", "Disaster Management" },
+                SecondaryFocusAreas = new List<string> { "Healthcare", "Agriculture" },
                 ContactPhone = "+92-58-12345678",
                 Email = "info@akf.org.pk",
                 Website = "https://www.akdn.org",
@@ -486,7 +449,6 @@
             },
             new NgoEntity
             {
-                Id = 2,
                 Name = "GB Rural Support Programme",
                 Type = "National",
                 District = "Gilgit",
@@ -502,7 +464,6 @@
             },
             new NgoEntity
             {
-                Id = 3,
                 Name = "World Food Programme - GB",
                 Type = "International",
                 District = "Skardu",
@@ -515,102 +476,6 @@
                 Description = "WFP focuses on providing food assistance during emergencies and working with communities to improve nutrition and build resilience.",
                 Latitude = 35.3033,
                 Longitude = 75.6180
-            },
-            new NgoEntity
-            {
-                Id = 4,
-                Name = "Mountain Women Development Organization",
-                Type = "Local",
-                District = "Hunza",
-                Location = "Central Aliabad, Hunza",
-                PrimaryFocusArea = "Women Empowerment",
-                SecondaryFocusAreas = new List<string> { "Education", "Climate Change" },
-                ContactPhone = "+92-345-1234567",
-                Email = "info@mwdo.org",
-                Website = "https://www.mwdo.org",
-                Description = "A local organization dedicated to women's empowerment and education in the mountain communities of Hunza.",
-                Latitude = 36.3152,
-                Longitude = 74.6460
-            },
-            new NgoEntity
-            {
-                Id = 5,
-                Name = "International Committee of the Red Cross",
-                Type = "International",
-                District = "Gilgit",
-                Location = "Civil Lines, Gilgit",
-                PrimaryFocusArea = "Disaster Management",
-                SecondaryFocusAreas = new List<string> { "Healthcare", "Humanitarian Aid" },
-                ContactPhone = "+92-58-12223344",
-                Email = "gilgit@icrc.org",
-                Website = "https://www.icrc.org",
-                Description = "ICRC provides humanitarian protection and assistance for victims of war and other situations of violence.",
-                Latitude = 35.9107,
-                Longitude = 74.3850
-            },
-            new NgoEntity
-            {
-                Id = 6,
-                Name = "Baltistan Environmental Protection Organization",
-                Type = "Local",
-                District = "Skardu",
-                Location = "Green Town, Skardu",
-                PrimaryFocusArea = "Climate Change",
-                SecondaryFocusAreas = new List<string> { "Water & Sanitation", "Education" },
-                ContactPhone = "+92-355-7778899",
-                Email = "contact@bepo.org",
-                Website = "",
-                Description = "A grassroots organization working to protect the environment and address climate change issues in Baltistan region.",
-                Latitude = 35.2912,
-                Longitude = 75.6269
-            },
-            new NgoEntity
-            {
-                Id = 7,
-                Name = "Health and Education Alliance",
-                Type = "National",
-                District = "Astore",
-                Location = "Main Bazar, Astore",
-                PrimaryFocusArea = "Healthcare",
-                SecondaryFocusAreas = new List<string> { "Education" },
-                ContactPhone = "+92-300-1112233",
-                Email = "info@hea.org.pk",
-                Website = "https://www.hea.org.pk",
-                Description = "Working to improve healthcare and education facilities in remote areas of Astore district.",
-                Latitude = 35.3653,
-                Longitude = 74.8560
-            },
-            new NgoEntity
-            {
-                Id = 8,
-                Name = "Mountain Agriculture Research Center",
-                Type = "National",
-                District = "Gilgit",
-                Location = "Konodas, Gilgit",
-                PrimaryFocusArea = "Agriculture",
-                SecondaryFocusAreas = new List<string> { "Food Security", "Climate Change" },
-                ContactPhone = "+92-58-12345000",
-                Email = "info@marc.org.pk",
-                Website = "https://www.marc.org.pk",
-                Description = "Focuses on agricultural research and development in mountain ecosystems of Gilgit-Baltistan.",
-                Latitude = 35.8903,
-                Longitude = 74.4053
-            },
-            new NgoEntity
-            {
-                Id = 9,
-                Name = "Ghizer Development Organization",
-                Type = "Local",
-                District = "Ghizer",
-                Location = "Gahkuch, Ghizer",
-                PrimaryFocusArea = "Infrastructure",
-                SecondaryFocusAreas = new List<string> { "Education", "Disaster Management" },
-                ContactPhone = "+92-346-9876543",
-                Email = "gdo@gmail.com",
-                Website = "",
-                Description = "A community-based organization working on infrastructure development and disaster preparedness in Ghizer valley.",
-                Latitude = 36.1770,
-                Longitude = 73.7568
             }
         };
     }
@@ -619,8 +484,13 @@
     {
         try
         {
+            // Make sure to let the UI render completely before initializing the map
+            await Task.Delay(100);
+            
+            // Initialize the map
             await JS.InvokeVoidAsync("initNgoMap", 35.8884, 74.4584);
             
+            // Add markers for each NGO
             foreach (var ngo in ngoList)
             {
                 await JS.InvokeVoidAsync("addNgoMarker", ngo.Id, ngo.Name, ngo.Type, ngo.District, 
@@ -630,21 +500,7 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error initializing map: {ex.Message}");
-        }
-    }
-    
-    private async Task InitializeDetailMap()
-    {
-        try
-        {
-            if (selectedNgo != null)
-            {
-                await JS.InvokeVoidAsync("initNgoDetailMap", selectedNgo.Latitude, selectedNgo.Longitude, selectedNgo.Name);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error initializing detail map: {ex.Message}");
+            await JS.InvokeVoidAsync("alert", $"Error initializing map: {ex.Message}");
         }
     }
     
@@ -657,28 +513,6 @@
              n.PrimaryFocusArea == selectedFocusArea || 
              n.SecondaryFocusAreas.Contains(selectedFocusArea))
         ).ToList();
-        
-        CalculateFocusAreaDistribution();
-    }
-    
-    private void CalculateFocusAreaDistribution()
-    {
-        focusAreaDistribution = new Dictionary<string, double>();
-        
-        if (filteredNgos.Count == 0)
-            return;
-            
-        // Count primary focus areas
-        var primaryAreas = filteredNgos
-            .GroupBy(n => n.PrimaryFocusArea)
-            .ToDictionary(g => g.Key, g => g.Count());
-            
-        // Calculate percentages
-        foreach (var area in primaryAreas)
-        {
-            double percentage = Math.Round((double)area.Value / filteredNgos.Count * 100, 1);
-            focusAreaDistribution.Add(area.Key, percentage);
-        }
     }
     
     private async Task HandleInternationalToggle(ChangeEventArgs e)
@@ -702,26 +536,6 @@
         await JS.InvokeVoidAsync("toggleNgoLayerVisibility", "Local", isVisible);
     }
     
-    private async Task ToggleNgoLayer(ChangeEventArgs e, string layerType)
-    {
-        bool isVisible = (bool)e.Value!;
-        
-        switch (layerType)
-        {
-            case "International":
-                showInternationalLayer = isVisible;
-                break;
-            case "National":
-                showNationalLayer = isVisible;
-                break;
-            case "Local":
-                showLocalLayer = isVisible;
-                break;
-        }
-        
-        await JS.InvokeVoidAsync("toggleNgoLayerVisibility", layerType, isVisible);
-    }
-    
     private void ToggleAddNgoForm()
     {
         showAddNgoForm = !showAddNgoForm;
@@ -734,22 +548,6 @@
     private void ResetForm()
     {
         newNgo = new NgoEntity();
-        secondaryFocusAreas = new List<string>();
-    }
-    
-    private void HandleSecondaryFocusAreaToggle(string area, ChangeEventArgs e)
-    {
-        if (e.Value != null && (bool)e.Value)
-        {
-            if (!secondaryFocusAreas.Contains(area))
-            {
-                secondaryFocusAreas.Add(area);
-            }
-        }
-        else
-        {
-            secondaryFocusAreas.Remove(area);
-        }
     }
     
     private async Task AddNgo()
@@ -760,31 +558,38 @@
             string.IsNullOrWhiteSpace(newNgo.PrimaryFocusArea))
         {
             // Show validation error
+            await JS.InvokeVoidAsync("alert", "Please fill in all required fields.");
             return;
         }
-        
-        // Generate ID
-        newNgo.Id = ngoList.Count > 0 ? ngoList.Max(n => n.Id) + 1 : 1;
-        
-        // Set secondary focus areas
-        newNgo.SecondaryFocusAreas = new List<string>(secondaryFocusAreas);
         
         // Set default coordinates based on district
         SetDefaultCoordinates(newNgo);
         
-        // Add to list
-        ngoList.Add(newNgo);
-        
-        // Update map
-        await JS.InvokeVoidAsync("addNgoMarker", newNgo.Id, newNgo.Name, newNgo.Type, newNgo.District, 
-            newNgo.PrimaryFocusArea, newNgo.Latitude, newNgo.Longitude);
-        
-        // Apply filters to update view
-        ApplyFilters();
-        
-        // Reset form
-        showAddNgoForm = false;
-        ResetForm();
+        try
+        {
+            // Add to database
+            var createdNgo = await _ngoRepository.CreateAsync(newNgo);
+            
+            // Add to local list
+            ngoList.Add(createdNgo);
+            
+            // Update map
+            await JS.InvokeVoidAsync("addNgoMarker", createdNgo.Id, createdNgo.Name, createdNgo.Type, createdNgo.District, 
+                createdNgo.PrimaryFocusArea, createdNgo.Latitude, createdNgo.Longitude);
+            
+            // Apply filters to update view
+            ApplyFilters();
+            
+            // Reset form
+            showAddNgoForm = false;
+            ResetForm();
+            
+            await JS.InvokeVoidAsync("alert", "NGO added successfully!");
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error adding NGO: {ex.Message}");
+        }
     }
     
     private void SetDefaultCoordinates(NgoEntity ngo)
@@ -825,58 +630,43 @@
     
     private async Task DeleteNgo(NgoEntity ngo)
     {
-        ngoList.Remove(ngo);
-        filteredNgos.Remove(ngo);
-        
-        // Remove marker from map
-        await JS.InvokeVoidAsync("removeNgoMarker", ngo.Id);
-        
-        ApplyFilters();
+        try
+        {
+            // Delete from database
+            var result = await _ngoRepository.DeleteAsync(ngo.Id);
+            
+            if (result)
+            {
+                // Remove from local lists
+                ngoList.Remove(ngo);
+                filteredNgos.Remove(ngo);
+                
+                // Remove marker from map
+                await JS.InvokeVoidAsync("removeNgoMarker", ngo.Id);
+                
+                ApplyFilters();
+                
+                await JS.InvokeVoidAsync("alert", "NGO deleted successfully!");
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "Failed to delete NGO.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error deleting NGO: {ex.Message}");
+        }
     }
     
     private string GetNgoTypeBadgeClass(string type)
     {
         return type switch
         {
-            "International" => "bg-danger",
-            "National" => "bg-warning text-dark",
-            "Local" => "bg-success",
+            "International" => "bg-success-subtle text-success",
+            "National" => "bg-success",
+            "Local" => "bg-success-light text-success",
             _ => "bg-secondary"
         };
-    }
-    
-    private string GetFocusAreaColor(string area)
-    {
-        return area switch
-        {
-            "Disaster Management" => "bg-danger",
-            "Healthcare" => "bg-info",
-            "Education" => "bg-primary",
-            "Water & Sanitation" => "bg-info",
-            "Agriculture" => "bg-success",
-            "Women Empowerment" => "bg-pink",
-            "Climate Change" => "bg-teal",
-            "Infrastructure" => "bg-warning",
-            "Food Security" => "bg-orange",
-            "Rural Development" => "bg-success",
-            _ => "bg-secondary"
-        };
-    }
-    
-    private class NgoEntity
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = "";
-        public string Type { get; set; } = "";
-        public string District { get; set; } = "";
-        public string Location { get; set; } = "";
-        public string PrimaryFocusArea { get; set; } = "";
-        public List<string> SecondaryFocusAreas { get; set; } = new();
-        public string ContactPhone { get; set; } = "";
-        public string Email { get; set; } = "";
-        public string Website { get; set; } = "";
-        public string Description { get; set; } = "";
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
     }
 }
