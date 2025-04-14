@@ -1,4 +1,11 @@
-﻿body {
+﻿.page-heading {
+    color: #2e7d32;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #a5d6a7;
+}
 
 .current-weather {
     display: flex;
@@ -21,6 +28,7 @@
     font-size: 2.5rem;
     font-weight: bold;
     line-height: 1;
+    color: #2e7d32;
 }
 
 .feels-like {
@@ -31,12 +39,14 @@
 .weather-description {
     font-size: 1.2rem;
     margin: 8px 0;
+    color: #2e7d32;
 }
 
 .weather-details {
-    background-color: #f8f9fa;
+    background-color: #f1f8e9;
     border-radius: 8px;
     padding: 10px;
+    border: 1px solid #c8e6c9;
 }
 
 .detail-item {
@@ -44,6 +54,7 @@
     font-weight: 500;
     text-align: center;
     margin-bottom: 5px;
+    color: #2e7d32;
 }
 
 .detail-label {
@@ -53,15 +64,17 @@
 }
 
 .forecast-card {
-    background-color: #f8f9fa;
+    background-color: #f1f8e9;
     border-radius: 8px;
     padding: 10px;
     height: 100%;
+    border: 1px solid #c8e6c9;
 }
 
 .forecast-day {
     font-weight: bold;
     margin-bottom: 5px;
+    color: #2e7d32;
 }
 
 .forecast-icon {
@@ -73,14 +86,15 @@
     margin: 5px 0;
 }
 
-    .forecast-temp .high {
-        font-weight: bold;
-        margin-right: 8px;
-    }
+.forecast-temp .high {
+    font-weight: bold;
+    margin-right: 8px;
+    color: #2e7d32;
+}
 
-    .forecast-temp .low {
-        color: #6c757d;
-    }
+.forecast-temp .low {
+    color: #689f38;
+}
 
 .forecast-desc {
     font-size: 0.9rem;
@@ -89,7 +103,7 @@
 
 .forecast-detail {
     font-size: 0.8rem;
-    color: #6c757d;
+    color: #558b2f;
 }
 
 .hourly-icon {
@@ -97,5 +111,6 @@
     height: 30px;
 }
 
-
+.forecast-column {
+    padding: 0 5px;
 }
