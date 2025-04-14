@@ -15,6 +15,7 @@ namespace GBDMS.Data
         {
             _connection = new SQLiteAsyncConnection(Path.Combine(FileSystem.AppDataDirectory, DB_NAME));
             _connection.CreateTableAsync<User>();
+            _connection.CreateTableAsync<InventoryItem>();
         }
         public SQLiteAsyncConnection GetConnection() => _connection;
     }

@@ -25,6 +25,7 @@ namespace GBDMS
             // Register database and repository services
             builder.Services.AddSingleton<LocalDbService>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
             
             // Register model execution service
             builder.Services.AddScoped<PythonModelExecutor>();
