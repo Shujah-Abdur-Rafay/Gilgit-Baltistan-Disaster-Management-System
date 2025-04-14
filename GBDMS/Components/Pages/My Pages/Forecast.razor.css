@@ -7,6 +7,30 @@
     border-bottom: 2px solid #a5d6a7;
 }
 
+h2 {
+    color: #2e7d32;
+    font-weight: 600;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #a5d6a7;
+}
+
+.card {
+    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid #e0e0e0;
+    transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
 .current-weather {
     display: flex;
     align-items: center;
@@ -69,6 +93,12 @@
     padding: 10px;
     height: 100%;
     border: 1px solid #c8e6c9;
+    transition: all 0.2s ease-in-out;
+}
+
+.forecast-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
 }
 
 .forecast-day {
@@ -101,16 +131,25 @@
     margin-bottom: 5px;
 }
 
-.forecast-detail {
-    font-size: 0.8rem;
-    color: #558b2f;
-}
-
-.hourly-icon {
-    width: 30px;
-    height: 30px;
-}
-
 .forecast-column {
     padding: 0 5px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .temperature {
+        font-size: 2rem;
+    }
+    
+    .forecast-column {
+        width: 33.333%;
+        flex: 0 0 33.333%;
+    }
+}
+
+@media (max-width: 576px) {
+    .forecast-column {
+        width: 50%;
+        flex: 0 0 50%;
+    }
 }

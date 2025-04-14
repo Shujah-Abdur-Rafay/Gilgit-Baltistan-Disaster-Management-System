@@ -2,15 +2,14 @@
 @inject IJSRuntime JS
 @using System.Text.Json
 
-<div class="container-fluid">
-    <!-- Page Title with consistent styling -->
-    <h2 class="page-heading mb-4">Weather Forecast for Gilgit-Baltistan</h2>
+<div class="container-fluid mt-4">
+    <h2 class="mb-4">Weather Forecast for Gilgit-Baltistan</h2>
 
     <div class="row">
-        <!-- Left Column: Location and Current Weather -->
+        <!-- Location Selection and Current Weather -->
         <div class="col-md-4 mb-4">
             <!-- Location Selection Card -->
-            <div class="card mb-4">
+            <div class="card shadow-sm mb-4">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0">Location</h5>
                 </div>
@@ -32,7 +31,7 @@
             </div>
 
             <!-- Current Weather -->
-            <div class="card mt-3">
+            <div class="card shadow-sm">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0">Current Weather</h5>
                 </div>
@@ -96,43 +95,12 @@
                     }
                 </div>
             </div>
-
-            <!-- Weather Alerts -->
-            <div class="card mt-3">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">Weather Alerts</h5>
-                </div>
-                <div class="card-body">
-                    @if (weatherAlerts.Count > 0)
-                    {
-                        <div class="list-group">
-                            @foreach (var alert in weatherAlerts)
-                            {
-                                <div class="list-group-item list-group-item-@alert.Type.ToLower()">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">@alert.Title</h6>
-                                        <small>@alert.StartTime.ToString("dd MMM")</small>
-                                    </div>
-                                    <p class="mb-1">@alert.Description</p>
-                                    <small>Until @alert.EndTime.ToString("HH:mm, dd MMM")</small>
-                                </div>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="alert alert-success mb-0">
-                            <i class="bi bi-check-circle-fill me-2"></i>No weather alerts at this time
-                        </div>
-                    }
-                </div>
-            </div>
         </div>
 
         <!-- Right Column: Forecast and Map -->
         <div class="col-md-8">
             <!-- Daily Forecast -->
-            <div class="card mb-4">
+            <div class="card shadow-sm mb-4">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0">5-Day Forecast</h5>
                 </div>
@@ -159,9 +127,6 @@
                                             <span class="low">@day.MinTemp°</span>
                                         </div>
                                         <div class="forecast-desc">@day.Description</div>
-                                        <div class="forecast-detail">
-                                            <span><i class="bi bi-droplet-fill text-success"></i> @day.PrecipProbability%</span>
-                                        </div>
                                     </div>
                                 </div>
                             }
@@ -171,12 +136,12 @@
             </div>
 
             <!-- Weather Map -->
-            <div class="card">
+            <div class="card shadow-sm">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0">Weather Map</h5>
                 </div>
                 <div class="card-body p-0">
-                    <div id="weatherMap" style="width: 100%; height: 400px;"></div>
+                    <div id="weatherMap" style="width: 100%; height: 350px;"></div>
                 </div>
             </div>
         </div>
@@ -187,7 +152,6 @@
     // Variables
     private string selectedDistrict = "Gilgit";
     private CurrentWeather currentWeather = new();
-    private List<WeatherAlert> weatherAlerts = new();
     private List<DailyForecast> dailyForecast = new();
     private bool isMapInitialized = false;
     private bool isLoading = true;
@@ -210,7 +174,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Load initial weather data
         await LoadWeatherData();
     }
 
@@ -218,13 +181,12 @@
     {
         if (firstRender)
         {
-            // Initialize the map on first render
             await InitializeWeatherMap();
         }
     }
 
     /// <summary>
-    /// Load simulated weather data for the selected district
+    /// Load weather data for the selected district
     /// </summary>
     private async Task LoadWeatherData()
     {
@@ -233,11 +195,9 @@
             isLoading = true;
             StateHasChanged();
 
-            // Generate simulated weather data
             await Task.Delay(500); // Simulate network delay
-            await GenerateSimulatedWeatherData();
+            await GenerateWeatherData();
 
-            // Update map if initialized
             if (isMapInitialized)
             {
                 await UpdateWeatherMap();
@@ -255,9 +215,9 @@
     }
 
     /// <summary>
-    /// Generate simulated weather data
+    /// Generate weather data
     /// </summary>
-    private async Task GenerateSimulatedWeatherData()
+    private async Task GenerateWeatherData()
     {
         try
         {
@@ -295,29 +255,11 @@
                     PrecipProbability = random.Next(0, 80)
                 });
             }
-
-            // Generate weather alerts (30% chance)
-            weatherAlerts.Clear();
-            if (random.Next(100) < 30)
-            {
-                var alertTypes = new[] { "warning", "danger", "info" };
-                var alertType = alertTypes[random.Next(alertTypes.Length)];
-                var alertTitle = alertType == "danger" ? "Heavy Snowfall Warning" :
-                                 alertType == "warning" ? "Strong Wind Advisory" : "Rain Watch";
-
-                weatherAlerts.Add(new WeatherAlert
-                {
-                    Type = alertType,
-                    Title = alertTitle,
-                    Description = $"{alertTitle} in effect for {selectedDistrict} and surrounding areas.",
-                    StartTime = DateTime.Now,
-                    EndTime = DateTime.Now.AddHours(random.Next(6, 48))
-                });
-            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error generating simulated data: {ex.Message}");
+            Console.WriteLine($"Error generating weather data: {ex.Message}");
+            await Task.CompletedTask;
         }
     }
 
@@ -414,10 +356,10 @@
 
                 // Add temperature data to the map
                 districts.forEach(d => {
-                    // Temperature layer: circles colored by temperature
+                    // Temperature markers with color based on temperature
                     const tempColor = d.temp < 0 ? '#00bcd4' : 
                                      d.temp < 10 ? '#4caf50' : 
-                                     d.temp < 20 ? '#ff9800' : '#f44336';
+                                     d.temp < 20 ? '#8bc34a' : '#f44336';
                     
                     const tempMarker = L.circleMarker([d.lat, d.lon], {
                         radius: 15,
@@ -436,20 +378,7 @@
         }
     }
 
-    /// <summary>
-    /// This method is no longer needed since we removed the layer buttons
-    /// </summary>
-    private async Task ChangeMapLayer(string layer)
-    {
-        // Method kept for compatibility but no longer used
-        await Task.CompletedTask;
-    }
-
     // Helper methods
-    
-    /// <summary>
-    /// Convert a string to title case
-    /// </summary>
     private string ToTitleCase(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -460,17 +389,11 @@
         return textInfo.ToTitleCase(text.ToLower());
     }
 
-    /// <summary>
-    /// Helper method to get weather icon URL
-    /// </summary>
     private string GetWeatherIconUrl(string iconCode)
     {
         return $"https://openweathermap.org/img/wn/{iconCode}@2x.png";
     }
 
-    /// <summary>
-    /// Generate temperature based on district (for fallback data)
-    /// </summary>
     private int GetTemperatureForDistrict(string district)
     {
         // Generate realistic temperatures based on season and district elevation
@@ -498,9 +421,6 @@
         };
     }
 
-    /// <summary>
-    /// Get weather description based on temperature (for fallback data)
-    /// </summary>
     private string GetWeatherDescription(int temperature)
     {
         if (temperature < -5) return "Freezing";
@@ -512,9 +432,6 @@
         return "Hot";
     }
 
-    /// <summary>
-    /// Get icon code based on temperature (for fallback data)
-    /// </summary>
     private string GetIconCodeForTemp(int temperature)
     {
         // Use weather icons based on temperature
@@ -532,10 +449,6 @@
     }
 
     // Data models
-    
-    /// <summary>
-    /// Current weather data model
-    /// </summary>
     private class CurrentWeather
     {
         public int Temperature { get; set; } = 0;
@@ -549,21 +462,6 @@
         public DateTime LastUpdated { get; set; } = DateTime.Now;
     }
 
-    /// <summary>
-    /// Weather alert data model
-    /// </summary>
-    private class WeatherAlert
-    {
-        public string Type { get; set; } = "info";
-        public string Title { get; set; } = "";
-        public string Description { get; set; } = "";
-        public DateTime StartTime { get; set; } = DateTime.Now;
-        public DateTime EndTime { get; set; } = DateTime.Now.AddHours(24);
-    }
-
-    /// <summary>
-    /// Daily forecast data model
-    /// </summary>
     private class DailyForecast
     {
         public DateTime Date { get; set; } = DateTime.Now;
