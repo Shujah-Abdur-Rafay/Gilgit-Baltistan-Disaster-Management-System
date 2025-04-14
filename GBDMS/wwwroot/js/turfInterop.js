@@ -797,41 +797,48 @@ window.turfInterop = {
     
     // Add administrative boundaries
     loadAdministrativeBoundaries: function() {
-        // For Gilgit-Baltistan, Pakistan - simplified example
-        const districts = [
-            { name: "Gilgit", coordinates: [
-                [74.0, 35.0], [74.5, 35.0], [74.5, 35.5], [74.0, 35.5], [74.0, 35.0]
-            ]},
-            { name: "Skardu", coordinates: [
-                [75.0, 35.5], [76.0, 35.5], [76.0, 36.0], [75.0, 36.0], [75.0, 35.5]
-            ]},
-            { name: "Hunza", coordinates: [
-                [72.5, 36.0], [73.5, 36.0], [73.5, 36.5], [72.5, 36.5], [72.5, 36.0]
-            ]},
-            { name: "Astore", coordinates: [
-                [74.5, 35.0], [75.5, 35.0], [75.5, 35.5], [74.5, 35.5], [74.5, 35.0]
-            ]}
-        ];
-        
-        // Convert to GeoJSON
-        const features = districts.map(district => ({
-            type: "Feature",
-            properties: { name: district.name, type: "District" },
-            geometry: {
-                type: "Polygon",
-                coordinates: [district.coordinates]
-            }
-        }));
-        
-        const geoJson = {
-            type: "FeatureCollection",
-            features: features
-        };
-        
-        return {
-            success: true,
-            geojson: JSON.stringify(geoJson)
-        };
+        try {
+            // For Gilgit-Baltistan, Pakistan - simplified example
+            const districts = [
+                { name: "Gilgit", coordinates: [
+                    [74.0, 35.0], [74.5, 35.0], [74.5, 35.5], [74.0, 35.5], [74.0, 35.0]
+                ]},
+                { name: "Skardu", coordinates: [
+                    [75.0, 35.5], [76.0, 35.5], [76.0, 36.0], [75.0, 36.0], [75.0, 35.5]
+                ]},
+                { name: "Hunza", coordinates: [
+                    [72.5, 36.0], [73.5, 36.0], [73.5, 36.5], [72.5, 36.5], [72.5, 36.0]
+                ]},
+                { name: "Astore", coordinates: [
+                    [74.5, 35.0], [75.5, 35.0], [75.5, 35.5], [74.5, 35.5], [74.5, 35.0]
+                ]}
+            ];
+            
+            // Convert to GeoJSON
+            const features = districts.map(district => ({
+                type: "Feature",
+                properties: { name: district.name, type: "District" },
+                geometry: {
+                    type: "Polygon",
+                    coordinates: [district.coordinates]
+                }
+            }));
+            
+            const geoJson = {
+                type: "FeatureCollection",
+                features: features
+            };
+            
+            return {
+                success: true,
+                geoJson: JSON.stringify(geoJson)
+            };
+        } catch (e) {
+            return {
+                success: false,
+                error: e.message
+            };
+        }
     },
     
     // Create legend for map

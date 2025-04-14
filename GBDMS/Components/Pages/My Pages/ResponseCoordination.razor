@@ -125,7 +125,7 @@
             
             <!-- Incidents List -->
             <div class="col-md-7">
-                <div class="card">
+                <div class="card mb-4">
                     <div class="card-header bg-green d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 text-white"><i class="bi bi-list-check me-2"></i>Active Incidents</h5>
                         <button class="btn btn-light btn-sm" @onclick="LoadIncidents">
@@ -189,44 +189,38 @@
                 </div>
 
                 <!-- Quick Stats -->
-                <div class="card mt-4">
-                    <div class="card-header bg-green">
-                        <h5 class="mb-0 text-white"><i class="bi bi-graph-up me-2"></i>Emergency Response Stats</h5>
+                <h5 class="mb-3 text-success"><i class="bi bi-graph-up me-2"></i>Emergency Response Stats</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="inventory-summary">
+                            <div class="summary-icon bg-success">
+                                <i class="bi bi-exclamation-circle"></i>
+                            </div>
+                            <div>
+                                <div>Active Incidents</div>
+                                <div class="summary-value">@incidents.Count(i => i.Status == "Active" || i.Status == "Escalating")</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <div class="inventory-summary">
-                                    <div class="summary-icon bg-success">
-                                        <i class="bi bi-exclamation-circle"></i>
-                                    </div>
-                                    <div>
-                                        <div>Active Incidents</div>
-                                        <div class="summary-value">@incidents.Count(i => i.Status == "Active" || i.Status == "Escalating")</div>
-                                    </div>
-                                </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="inventory-summary">
+                            <div class="summary-icon bg-warning">
+                                <i class="bi bi-shield-exclamation"></i>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <div class="inventory-summary">
-                                    <div class="summary-icon bg-warning">
-                                        <i class="bi bi-shield-exclamation"></i>
-                                    </div>
-                                    <div>
-                                        <div>High Severity</div>
-                                        <div class="summary-value">@incidents.Count(i => i.SeverityLevel == "4" || i.SeverityLevel == "5")</div>
-                                    </div>
-                                </div>
+                            <div>
+                                <div>High Severity</div>
+                                <div class="summary-value">@incidents.Count(i => i.SeverityLevel == "4" || i.SeverityLevel == "5")</div>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <div class="inventory-summary">
-                                    <div class="summary-icon bg-info">
-                                        <i class="bi bi-geo-alt"></i>
-                                    </div>
-                                    <div>
-                                        <div>Districts Affected</div>
-                                        <div class="summary-value">@incidents.Select(i => i.Location).Distinct().Count()</div>
-                                    </div>
-                                </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="inventory-summary">
+                            <div class="summary-icon bg-info">
+                                <i class="bi bi-geo-alt"></i>
+                            </div>
+                            <div>
+                                <div>Districts Affected</div>
+                                <div class="summary-value">@incidents.Select(i => i.Location).Distinct().Count()</div>
                             </div>
                         </div>
                     </div>
@@ -237,11 +231,10 @@
 
     @if (activeTab == "activity")
     {
-        <div class="card">
-            <div class="card-header bg-green">
-                <h5 class="mb-0 text-white"><i class="bi bi-journal-text me-2"></i>Activity Log</h5>
-            </div>
-            <div class="card-body">
+        <div class="row">
+            <div class="col-12">
+                <h5 class="mb-3 text-success"><i class="bi bi-journal-text me-2"></i>Activity Log</h5>
+                
                 <div class="mb-4">
                     <div class="input-group">
                         <input type="text" class="form-control" placeholder="Add new log entry..." @bind="newLogEntry">
@@ -251,20 +244,24 @@
                     </div>
                 </div>
 
-                <div class="activity-log">
-                    @foreach (var log in activityLogs)
-                    {
-                        <div class="activity-item">
-                            <div class="activity-time">
-                                <i class="bi bi-clock me-1"></i>
-                                @log.Timestamp.ToString("HH:mm")
-                            </div>
-                            <div class="activity-content">
-                                <div class="activity-title">@log.Title</div>
-                                <div class="activity-desc">@log.Description</div>
-                            </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="activity-log">
+                            @foreach (var log in activityLogs)
+                            {
+                                <div class="activity-item">
+                                    <div class="activity-time">
+                                        <i class="bi bi-clock me-1"></i>
+                                        @log.Timestamp.ToString("HH:mm")
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">@log.Title</div>
+                                        <div class="activity-desc">@log.Description</div>
+                                    </div>
+                                </div>
+                            }
                         </div>
-                    }
+                    </div>
                 </div>
             </div>
         </div>
