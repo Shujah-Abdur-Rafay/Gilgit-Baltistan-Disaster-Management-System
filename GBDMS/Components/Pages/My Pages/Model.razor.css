@@ -2,10 +2,19 @@
 }
 
 /* General Styles */
-h3 {
-    color: #2c3e50;
-    margin-bottom: 1.5rem;
-    font-weight: 600;
+.page-header {
+    margin-bottom: 20px;
+    border-bottom: 2px solid #198754;
+    padding-bottom: 10px;
+}
+
+.page-header h2 {
+    color: #155724;
+    margin-bottom: 5px;
+}
+
+h3, h5, h6 {
+    color: #155724;
 }
 
 .card {
@@ -18,6 +27,10 @@ h3 {
 .card-header {
     border-radius: 0.5rem 0.5rem 0 0 !important;
     font-weight: 500;
+}
+
+.card-header.bg-success {
+    background-color: #198754 !important;
 }
 
 .card-body {
@@ -45,8 +58,8 @@ h3 {
 }
 
 .drag-drop-zone-active {
-    border-color: #007bff;
-    background-color: rgba(0, 123, 255, 0.1);
+    border-color: #198754;
+    background-color: rgba(25, 135, 84, 0.1);
 }
 
 .drag-drop-content {
@@ -88,15 +101,35 @@ h3 {
     margin: 1rem 0;
 }
 
-/* Tabs */
-.nav-tabs .nav-link {
-    color: #495057;
-    font-weight: 500;
+.progress-bar.bg-success {
+    background-color: #198754 !important;
 }
 
-.nav-tabs .nav-link.active {
-    color: #007bff;
-    font-weight: 600;
+/* Button Styles */
+.btn-success {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.btn-success:hover {
+    background-color: #157347;
+    border-color: #146c43;
+}
+
+.btn-outline-success {
+    color: #198754;
+    border-color: #198754;
+}
+
+.btn-outline-success:hover {
+    background-color: #198754;
+    color: white;
+}
+
+/* Form controls */
+.form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
 }
 
 /* Table Styles */
@@ -121,7 +154,7 @@ h3 {
 .metric-value {
     font-size: 2.5rem;
     font-weight: 700;
-    color: #28a745;
+    color: #198754;
     margin-bottom: 0.5rem;
 }
 
@@ -132,17 +165,30 @@ h3 {
     color: #6c757d;
 }
 
+/* Text colors */
+.text-success {
+    color: #198754 !important;
+}
+
 /* Chart Container */
 .chart-container {
     padding: 1rem;
     background-color: #fff;
     border-radius: 0.5rem;
     text-align: center;
+    border: 1px solid rgba(25, 135, 84, 0.2);
 }
 
 .chart-container img {
     max-width: 100%;
     height: auto;
+}
+
+/* Alert customization */
+.alert-success {
+    background-color: rgba(25, 135, 84, 0.1);
+    border-color: rgba(25, 135, 84, 0.2);
+    color: #155724;
 }
 
 /* Processing Log Styles */
@@ -169,6 +215,17 @@ h3 {
 
 .log-message {
     color: #212529;
+}
+
+/* Tabs */
+.nav-tabs .nav-link {
+    color: #495057;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link.active {
+    color: #007bff;
+    font-weight: 600;
 }
 
 /* Responsive Adjustments */

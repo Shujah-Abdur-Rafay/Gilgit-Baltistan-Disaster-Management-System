@@ -220,7 +220,6 @@ namespace GBDMS.Services.ModelService
             string datasetPath,
             int trees = 100,
             double testSize = 0.3,
-            bool featureImportance = true,
             bool confusionMatrix = true,
             Action<string> progressCallback = null)
         {
@@ -244,7 +243,7 @@ namespace GBDMS.Services.ModelService
                     progressCallback?.Invoke("Python script not found. Using simulation mode instead.");
                     // Create working copy for simulation
                     workingCopy = await CreateWorkingCopy(datasetPath);
-                    return GenerateSimulatedResults(workingCopy, trees, testSize, featureImportance, confusionMatrix);
+                    return GenerateSimulatedResults(workingCopy, trees, testSize, confusionMatrix);
                 }
                 
                 // Create a working copy to avoid file access issues
@@ -256,7 +255,6 @@ namespace GBDMS.Services.ModelService
                 arguments.Append($"--input \"{workingCopy}\" ");
                 arguments.Append($"--trees {trees} ");
                 arguments.Append($"--test-size {testSize} ");
-                arguments.Append($"--feature-importance {featureImportance.ToString().ToLower()} ");
                 arguments.Append($"--confusion-matrix {confusionMatrix.ToString().ToLower()} ");
                 arguments.Append($"--output-dir \"{_outputDir}\"");
 
@@ -268,7 +266,7 @@ namespace GBDMS.Services.ModelService
                 {
                     // For development/fallback, use simulated results instead
                     progressCallback?.Invoke("Python interpreter not found. Using simulated results.");
-                    return GenerateSimulatedResults(workingCopy, trees, testSize, featureImportance, confusionMatrix);
+                    return GenerateSimulatedResults(workingCopy, trees, testSize, confusionMatrix);
                 }
 
                 // Set up process
@@ -422,7 +420,6 @@ namespace GBDMS.Services.ModelService
             string datasetPath, 
             int trees, 
             double testSize, 
-            bool featureImportance, 
             bool confusionMatrix)
         {
             _logger.LogWarning("Generating simulated model results for testing");
@@ -439,13 +436,6 @@ namespace GBDMS.Services.ModelService
                 var confusionMatrixPath = Path.Combine(_outputDir, "sample_confusion_matrix.png");
                 CreateSampleVisualization(confusionMatrixPath, "Confusion Matrix");
                 visualizations["confusion_matrix"] = confusionMatrixPath;
-            }
-            
-            if (featureImportance)
-            {
-                var featureImportancePath = Path.Combine(_outputDir, "sample_feature_importance.png");
-                CreateSampleVisualization(featureImportancePath, "Feature Importance");
-                visualizations["feature_importance"] = featureImportancePath;
             }
             
             // Create sample classification report
