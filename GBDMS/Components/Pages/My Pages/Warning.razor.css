@@ -1,6 +1,12 @@
-﻿body {
-    
-    
+﻿.page-heading {
+    color: #2e7d32;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #a5d6a7;
+}
+
 .alert-marker {
     width: 24px;
     height: 24px;
@@ -13,27 +19,27 @@
 }
 
 .alert-marker-emergency {
-    background-color: #dc3545;
+    background-color: #d32f2f;
     animation: pulse-danger 1.5s infinite;
 }
 
 .alert-marker-warning {
-    background-color: #ffc107;
+    background-color: #ff9800;
     color: black;
 }
 
 .alert-marker-watch {
-    background-color: #0dcaf0;
-    color: black;
+    background-color: #2e7d32;
+    color: white;
 }
 
 .alert-marker-advisory {
-    background-color: #f8f9fa;
+    background-color: #a5d6a7;
     color: black;
 }
 
 .alert-marker-default {
-    background-color: #6c757d;
+    background-color: #4caf50;
 }
 
 @keyframes pulse-danger {
@@ -94,7 +100,4 @@
 .detail-label {
     font-size: 0.8rem;
     color: #6c757d;
-}
-
-
 }
