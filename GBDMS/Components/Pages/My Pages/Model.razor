@@ -18,8 +18,8 @@
 @inject ILogger<Model> Logger
 
 <div class="container-fluid">
-    <div class="page-header">
-        <h2>Disaster Risk Analysis Model</h2>
+    <div class="page-header mb-4">
+        <h2 class="text-success">Disaster Risk Analysis Model</h2>
         <p class="text-muted">Analyze disaster risk data using machine learning</p>
     </div>
     
@@ -33,7 +33,7 @@
                 <div class="card-body">
                     <!-- Dataset Upload -->
                     <div class="mb-3">
-                        <h6>1. Upload Dataset</h6>
+                        <h6 class="text-success">1. Upload Dataset</h6>
 
                         <!-- Drag & Drop Area -->
                         <div class="drag-drop-zone @dropClass" @ref="dropZoneElement"
@@ -41,7 +41,7 @@
                         @ondragover:preventDefault @ondrop="HandleDrop">
                             <InputFile OnChange="@LoadDataset" class="file-input" @ref="inputFile" accept=".csv" />
                             <div class="drag-drop-content">
-                                <i class="bi bi-cloud-upload fa-3x mb-2"></i>
+                                <i class="bi bi-cloud-upload fa-3x mb-2 text-success"></i>
                                 <p>Drag and drop your dataset here</p>
                                 <p>or</p>
                                 <button type="button" class="btn btn-outline-success" @onclick="BrowseFiles">
@@ -61,7 +61,7 @@
 
                     <!-- Analysis Settings -->
                     <div class="mb-3">
-                        <h6>2. Analysis Settings</h6>
+                        <h6 class="text-success">2. Analysis Settings</h6>
 
                         <div class="mb-3">
                             <label class="form-label">Test Size (%)</label>
@@ -218,11 +218,11 @@
                     <div class="card-body">
                         <div class="row mb-4">
                             <div class="col-md-6">
-                                <div class="card">
+                                <div class="card border-success h-100">
                                     <div class="card-body">
                                         <h6 class="card-title text-success">Accuracy Metrics</h6>
-                                        <div class="metric-card">
-                                            <div class="metric-value">@accuracy%</div>
+                                        <div class="metric-card text-center">
+                                            <div class="metric-value text-success" style="font-size: 2.5rem; font-weight: bold;">@accuracy%</div>
                                             <div class="metric-label">Accuracy</div>
                                         </div>
                                     </div>
@@ -230,7 +230,7 @@
                             </div>
 
                             <div class="col-md-6">
-                                <div class="card">
+                                <div class="card border-success h-100">
                                     <div class="card-body">
                                         <h6 class="card-title text-success">Model Parameters</h6>
                                         <ul class="list-group list-group-flush">
@@ -257,7 +257,7 @@
                         {
                             <div class="table-responsive">
                                 <table class="table table-bordered table-striped">
-                                    <thead>
+                                    <thead class="bg-success text-white">
                                         <tr>
                                             <th>Class</th>
                                             <th>Precision</th>
@@ -291,8 +291,11 @@
                         @if (confusionMatrix && !string.IsNullOrEmpty(confusionMatrixUrl))
                         {
                             <h6 class="text-success mt-4 mb-3">Confusion Matrix</h6>
-                            <div class="chart-container">
-                                <img src="@confusionMatrixUrl" class="img-fluid" alt="Confusion Matrix">
+                            <div class="card p-3 bg-light">
+                                <div class="chart-container text-center">
+                                    <img src="@confusionMatrixUrl" class="img-fluid" alt="Confusion Matrix">
+                                    <p class="text-muted mt-2"><small>The confusion matrix shows the performance of the classification model, with actual classes on rows and predicted classes on columns.</small></p>
+                                </div>
                             </div>
                         }
                     </div>

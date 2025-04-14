@@ -4,14 +4,17 @@
 @using Microsoft.AspNetCore.Components.Forms
 
 <div class="container-fluid">
-    <h2 class="mb-4">Hazard and Risk Atlas</h2>
+    <div class="page-header mb-4 text-center">
+        <h2 class="text-success fw-bold">Hazard and Risk Atlas</h2>
+        <p class="text-muted">Analyze, visualize, and assess disaster risks in Gilgit-Baltistan region</p>
+    </div>
     
     <div class="row mb-4">
         <div class="col-md-3">
             <!-- Main Tools Panel -->
-            <div class="card mb-3">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Analysis Tools</h5>
+            <div class="card mb-3 shadow-sm border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-tools me-2"></i>Analysis Tools</h5>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
@@ -31,7 +34,7 @@
                     
                     @if (selectedAnalysisType == "distance")
                     {
-                        <button class="btn btn-primary w-100" @onclick="CalculateDistance">Calculate Distance</button>
+                        <button class="btn btn-success w-100" @onclick="CalculateDistance">Calculate Distance</button>
                     }
                     else if (selectedAnalysisType == "buffer")
                     {
@@ -39,15 +42,15 @@
                             <label class="form-label">Buffer Radius (km)</label>
                             <input type="number" class="form-control" @bind="bufferRadius" min="1" max="100" />
                         </div>
-                        <button class="btn btn-primary w-100" @onclick="BufferRegion">Create Buffer</button>
+                        <button class="btn btn-success w-100" @onclick="BufferRegion">Create Buffer</button>
                     }
                     else if (selectedAnalysisType == "clusters")
                     {
-                        <button class="btn btn-primary w-100" @onclick="ClusterPoints">Analyze Clusters</button>
+                        <button class="btn btn-success w-100" @onclick="ClusterPoints">Analyze Clusters</button>
                     }
                     else if (selectedAnalysisType == "hazard")
                     {
-                        <button class="btn btn-primary w-100" @onclick="AnalyzeHazardRisk">Analyze Hazard Risk</button>
+                        <button class="btn btn-success w-100" @onclick="AnalyzeHazardRisk">Analyze Hazard Risk</button>
                     }
                     else if (selectedAnalysisType == "isolines")
                     {
@@ -55,11 +58,11 @@
                             <label class="form-label">Max Distance (km)</label>
                             <input type="number" class="form-control" @bind="isolineMaxDistance" min="10" max="200" />
                         </div>
-                        <button class="btn btn-primary w-100" @onclick="GenerateIsolines">Generate Isolines</button>
+                        <button class="btn btn-success w-100" @onclick="GenerateIsolines">Generate Isolines</button>
                     }
                     else if (selectedAnalysisType == "evacuation")
                     {
-                        <button class="btn btn-primary w-100" @onclick="FindEvacuationRoutes">Find Safe Routes</button>
+                        <button class="btn btn-success w-100" @onclick="FindEvacuationRoutes">Find Safe Routes</button>
                     }
                     else if (selectedAnalysisType == "intersection")
                     {
@@ -82,23 +85,23 @@
                                 <option value="CriticalInfrastructure">Critical Infrastructure</option>
                             </select>
                         </div>
-                        <button class="btn btn-primary w-100" @onclick="PerformIntersectionAnalysis">Analyze Intersection</button>
+                        <button class="btn btn-success w-100" @onclick="PerformIntersectionAnalysis">Analyze Intersection</button>
                     }
                     else if (selectedAnalysisType == "multihazard")
                     {
-                        <button class="btn btn-primary w-100" @onclick="AnalyzeMultiHazardRisk">Generate Risk Zones</button>
+                        <button class="btn btn-success w-100" @onclick="AnalyzeMultiHazardRisk">Generate Risk Zones</button>
                     }
                     else if (selectedAnalysisType == "infrastructure")
                     {
-                        <button class="btn btn-primary w-100" @onclick="AnalyzeCriticalInfrastructure">Analyze Infrastructure Risk</button>
+                        <button class="btn btn-success w-100" @onclick="AnalyzeCriticalInfrastructure">Analyze Infrastructure Risk</button>
                     }
                 </div>
             </div>
             
             <!-- Layer Control Panel -->
-            <div class="card mb-3">
+            <div class="card mb-3 shadow-sm border-success">
                 <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">Layer Control</h5>
+                    <h5 class="mb-0"><i class="bi bi-layers me-2"></i>Layer Control</h5>
                 </div>
                 <div class="card-body">
                     <div class="form-check mb-2">
@@ -130,9 +133,9 @@
             </div>
             
             <!-- Data Upload Panel -->
-            <div class="card mb-3">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">Data Upload</h5>
+            <div class="card mb-3 shadow-sm border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-upload me-2"></i>Data Upload</h5>
                 </div>
                 <div class="card-body">
                     <InputFile OnChange="@OnFileUpload" class="form-control mb-3" accept=".geojson,.kml,.gpx" />
@@ -156,30 +159,30 @@
             </div>
             
             <!-- Tools Panel -->
-            <div class="card mb-3">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0">Map Tools</h5>
+            <div class="card mb-3 shadow-sm border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Map Tools</h5>
                 </div>
                 <div class="card-body">
-                    <button class="btn btn-outline-dark w-100 mb-2" @onclick="DetectUserLocation">
+                    <button class="btn btn-outline-success w-100 mb-2" @onclick="DetectUserLocation">
                         <i class="bi bi-geo-alt"></i> My Location
                     </button>
                     <div class="mb-3">
                         <label class="form-label">Search Location</label>
                         <div class="input-group">
                             <input type="text" class="form-control" @bind="searchQuery" placeholder="City or coordinates" />
-                            <button class="btn btn-outline-secondary" @onclick="SearchLocation">
+                            <button class="btn btn-outline-success" @onclick="SearchLocation">
                                 <i class="bi bi-search"></i>
                             </button>
                         </div>
                     </div>
-                    <button class="btn btn-outline-dark w-100 mb-2" @onclick="ExportToPDF">
+                    <button class="btn btn-outline-success w-100 mb-2" @onclick="ExportToPDF">
                         <i class="bi bi-file-earmark-pdf"></i> Export to PDF
                     </button>
-                    <button class="btn btn-outline-dark w-100 mb-2" @onclick="ExportToGeoJSON">
+                    <button class="btn btn-outline-success w-100 mb-2" @onclick="ExportToGeoJSON">
                         <i class="bi bi-file-earmark-code"></i> Export to GeoJSON
                     </button>
-                    <button class="btn btn-outline-danger w-100" @onclick="SimulateAlerts">
+                    <button class="btn btn-outline-success w-100" @onclick="SimulateAlerts">
                         <i class="bi bi-exclamation-triangle"></i> Simulate Alerts
                     </button>
                 </div>
@@ -189,7 +192,10 @@
         <!-- Main Content Area -->
         <div class="col-md-9">
             <!-- Map Display -->
-            <div class="card mb-3">
+            <div class="card mb-3 shadow border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-map me-2"></i>Interactive Map</h5>
+                </div>
                 <div class="card-body p-0">
                     <div id="map" style="width: 100%; height: 500px;"></div>
                 </div>
@@ -198,9 +204,9 @@
             <!-- Alert Display -->
             @if (activeAlerts.Count > 0)
             {
-                <div class="alert alert-danger mb-3">
+                <div class="alert alert-danger mb-3 shadow-sm">
                     <h5>
-                        <i class="bi bi-exclamation-triangle"></i> 
+                        <i class="bi bi-exclamation-triangle me-2"></i> 
                         Active Alerts (@activeAlerts.Count)
                     </h5>
                     <ul class="mb-0">
@@ -218,9 +224,9 @@
             <div class="row">
                 <!-- Analysis Results -->
                 <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0">Analysis Results</h5>
+                    <div class="card shadow-sm border-success">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Analysis Results</h5>
                         </div>
                         <div class="card-body">
                             @if (selectedAnalysisType == "distance")
@@ -342,9 +348,9 @@
                 
                 <!-- Risk Summary -->
                 <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header bg-warning text-dark">
-                            <h5 class="mb-0">Risk Summary</h5>
+                    <div class="card shadow-sm border-success">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="bi bi-clipboard-data me-2"></i>Risk Summary</h5>
                         </div>
                         <div class="card-body">
                             <p><strong>Total Area at Risk:</strong> @totalAreaAtRisk.ToString("F2") km²</p>
@@ -354,7 +360,7 @@
                                 <span class="badge @GetRiskBadgeClass(overallRiskLevel)">@overallRiskLevel</span>
                             </p>
                             
-                            <div class="progress mb-2">
+                            <div class="progress mb-2" style="height: 20px;">
                                 <div class="progress-bar bg-success" role="progressbar" style="width: @(riskPercentages.Low)%" 
                                      aria-valuenow="@riskPercentages.Low" aria-valuemin="0" aria-valuemax="100">
                                     Low
