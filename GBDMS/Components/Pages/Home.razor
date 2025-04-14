@@ -1,6 +1,8 @@
 ﻿@page "/"
 @page "/home"
 
+<link rel="stylesheet" href="css/pages/home.css" />
+
 <div class="vision-container">
     <div class="hero-section">
         <div class="hero-content">
@@ -15,13 +17,7 @@
             </div>
         </div>
         <div class="hero-image">
-            <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
-                <rect width="500" height="500" fill="#0d47a1"/>
-                <circle cx="250" cy="250" r="200" fill="#198fe3"/>
-                <path d="M150 150 C150 150 400 200 300 350 S150 300 200 200 Z" fill="#fff" opacity="0.5"/>
-                <path d="M300 100 C300 100 150 300 250 350 S350 250 300 150 Z" fill="#94d2ff" opacity="0.7"/>
-                <path d="M200 200 C200 200 300 400 350 300 S250 150 200 200 Z" fill="#27aae1" opacity="0.6"/>
-            </svg>
+            <img src="images/gbdms-logo.png" alt="GBDMS Logo" class="gb-map-img" />
         </div>
     </div>
 
@@ -35,12 +31,28 @@
                 <h3>Satellite Monitoring</h3>
                 <p>Real-time monitoring using high-resolution imagery from multiple satellite platforms.</p>
                 <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg" class="feature-img">
-                    <rect width="300" height="200" fill="#3498db"/>
-                    <circle cx="50" cy="50" r="30" fill="#fff" stroke="#3498db" stroke-width="2"/>
-                    <path d="M50 50 L280 150" stroke="#fff" stroke-width="2" stroke-dasharray="5 5"/>
-                    <rect x="200" y="120" width="80" height="60" fill="#e74c3c"/>
-                    <rect x="210" y="130" width="60" height="40" fill="#ecf0f1"/>
-                    <rect x="220" y="135" width="40" height="30" fill="#95a5a6"/>
+                    <rect width="300" height="200" fill="#013A63"/>
+                    <!-- Earth -->
+                    <circle cx="150" cy="140" r="55" fill="#27aae1"/>
+                    <path d="M105 120 Q150 100 195 120 Q170 150 195 180 Q150 160 105 180 Q130 150 105 120" fill="#2ecc71" stroke="#27aae1" stroke-width="1"/>
+                    
+                    <!-- Satellite body -->
+                    <rect x="130" y="50" width="40" height="20" rx="2" fill="#ecf0f1" stroke="#95a5a6" stroke-width="1"/>
+                    
+                    <!-- Satellite panels -->
+                    <rect x="90" y="55" width="35" height="10" fill="#f1c40f" stroke="#e67e22" stroke-width="1"/>
+                    <rect x="175" y="55" width="35" height="10" fill="#f1c40f" stroke="#e67e22" stroke-width="1"/>
+                    
+                    <!-- Satellite antenna -->
+                    <line x1="150" y1="50" x2="150" y2="35" stroke="#ecf0f1" stroke-width="2"/>
+                    <circle cx="150" cy="32" r="4" fill="#e74c3c"/>
+                    
+                    <!-- Signal waves -->
+                    <path d="M155 60 Q170 100 180 120" stroke="#fff" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+                    <path d="M150 60 Q140 100 120 130" stroke="#fff" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+                    
+                    <!-- Logo text -->
+                    <text x="150" y="190" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">GBDMS SATELLITE</text>
                 </svg>
             </div>
             <div class="feature-card">

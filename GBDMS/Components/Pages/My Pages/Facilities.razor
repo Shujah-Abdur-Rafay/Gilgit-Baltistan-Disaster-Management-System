@@ -5,30 +5,103 @@
 
 <title>Disaster Management System</title>
 
+<style>
+    .header {
+        text-align: center;
+        padding: 1.5rem 0;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+    .header h1 {
+        color: #198754;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .header p {
+        color: #495057;
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .green-strip {
+        background-color: #198754;
+        padding: 12px 0;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .green-strip-btn {
+        background-color: transparent;
+        color: white;
+        border: 2px solid white;
+        border-radius: 30px;
+        padding: 6px 20px;
+        margin: 0 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .green-strip-btn:hover {
+        background-color: white;
+        color: #198754;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(25, 135, 84, 0.15) !important;
+    }
+
+    .card-img-top {
+        height: 180px;
+        object-fit: cover;
+        border-bottom: 3px solid #198754;
+    }
+
+    .card-body {
+        padding: 1.25rem;
+    }
+
+    .card-text {
+        font-size: 1.1rem;
+    }
+</style>
+
 <header class="header">
     <h1>Disaster Management System</h1>
     <p>Gilgit-Baltistan, Pakistan</p>
 </header>
 
-<nav class="nav-buttons text-center my-3">
-    <button class="btn btn-outline-dark me-2">Weather Data</button>
-    <button class="btn btn-outline-dark">Current Weather</button>
-</nav>
+<div class="green-strip">
+    <a href="/forecast" class="green-strip-btn btn">Weather Forecast</a>
+    <a href="/warning" class="green-strip-btn btn">Weather Alerts</a>
+</div>
 
 <main class="container my-4">
     <div class="row g-4">
         @foreach (var card in Cards)
         {
-                <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                    <NavLink class="text-decoration-none" href="@card.Route">
-                        <div class="card h-100 shadow-sm border-0">
-                            <img src="@card.Img" class="card-img-top" alt="@card.Title">
-                            <div class="card-body text-center">
-                                <p class="card-text text-dark fw-bold">@card.Title</p>
-                            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <NavLink class="text-decoration-none" href="@card.Route">
+                    <div class="card h-100 shadow-sm border-0">
+                        <img src="@card.Img" class="card-img-top" alt="@card.Title">
+                        <div class="card-body text-center">
+                            <p class="card-text text-dark fw-bold">@card.Title</p>
                         </div>
-                    </NavLink>
-                </div>
+                    </div>
+                </NavLink>
+            </div>
         }
     </div>
 </main>
