@@ -1,0 +1,69 @@
+:root {
+  /* Color Palette */
+  --primary-color: #2e8b57;       /* Sea Green - main brand color */
+  --primary-dark: #1a5e3c;        /* Darker green for hover states */
+  --primary-light: #4db380;       /* Lighter green for backgrounds */
+  --primary-bg: #f0f7f0;          /* Very light green for page backgrounds */
+  --accent-color: #4caf50;        /* Accent green for highlights */
+  --success-color: #43a047;       /* Success green */
+  --danger-color: #e53935;        /* Error red */
+  --warning-color: #ffb300;       /* Warning amber */
+  --info-color: #0288d1;          /* Info blue */
+  
+  /* Grayscale */
+  --text-dark: #1e2a20;           /* Dark green-tinted gray for text */
+  --text-medium: #495e4b;         /* Medium green-tinted gray for secondary text */
+  --text-light: #ffffff;          /* White text for dark backgrounds */
+  --border-color: #d0e0d0;        /* Light green-tinted gray for borders */
+  
+  /* Typography */
+  --font-family-base: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+  --font-family-heading: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+  --font-size-base: 1rem;         /* 16px */
+  --font-size-sm: 0.875rem;       /* 14px */
+  --font-size-lg: 1.125rem;       /* 18px */
+  --font-size-xl: 1.25rem;        /* 20px */
+  --font-size-xxl: 1.5rem;        /* 24px */
+  --font-size-h1: 2.25rem;        /* 36px */
+  --font-size-h2: 1.875rem;       /* 30px */
+  --font-size-h3: 1.5rem;         /* 24px */
+  --font-size-h4: 1.25rem;        /* 20px */
+  --font-size-h5: 1.125rem;       /* 18px */
+  --font-size-h6: 1rem;           /* 16px */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-base: 1.5;
+  --line-height-heading: 1.2;
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;          /* 4px */
+  --spacing-sm: 0.5rem;           /* 8px */
+  --spacing-md: 1rem;             /* 16px */
+  --spacing-lg: 1.5rem;           /* 24px */
+  --spacing-xl: 2rem;             /* 32px */
+  --spacing-xxl: 3rem;            /* 48px */
+  
+  /* Effects */
+  --box-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --box-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --border-radius-sm: 0.125rem;   /* 2px */
+  --border-radius: 0.25rem;       /* 4px */
+  --border-radius-lg: 0.5rem;     /* 8px */
+  --border-radius-xl: 1rem;       /* 16px */
+  --border-radius-pill: 50rem;    /* Rounded pill */
+  
+  /* Transitions */
+  --transition-base: all 0.2s ease-in-out;
+  --transition-slow: all 0.3s ease-in-out;
+  
+  /* Z-index */
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-tooltip: 1060;
+} 

@@ -1,0 +1,183 @@
+/* Responsive Utilities for GBDMS */
+
+/* Responsive Container Widths */
+.container-sm {
+    max-width: 576px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+}
+
+.container-md {
+    max-width: 768px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+}
+
+.container-lg {
+    max-width: 992px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+}
+
+.container-xl {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+}
+
+/* Responsive Margin and Padding */
+@media (max-width: 576px) {
+    .m-sm-0 { margin: 0 !important; }
+    .p-sm-0 { padding: 0 !important; }
+    .mx-sm-0 { margin-left: 0 !important; margin-right: 0 !important; }
+    .my-sm-0 { margin-top: 0 !important; margin-bottom: 0 !important; }
+    .px-sm-0 { padding-left: 0 !important; padding-right: 0 !important; }
+    .py-sm-0 { padding-top: 0 !important; padding-bottom: 0 !important; }
+    
+    .m-sm-1 { margin: var(--spacing-xs) !important; }
+    .p-sm-1 { padding: var(--spacing-xs) !important; }
+    .mx-sm-1 { margin-left: var(--spacing-xs) !important; margin-right: var(--spacing-xs) !important; }
+    .my-sm-1 { margin-top: var(--spacing-xs) !important; margin-bottom: var(--spacing-xs) !important; }
+    .px-sm-1 { padding-left: var(--spacing-xs) !important; padding-right: var(--spacing-xs) !important; }
+    .py-sm-1 { padding-top: var(--spacing-xs) !important; padding-bottom: var(--spacing-xs) !important; }
+    
+    .card {
+        border-radius: var(--border-radius);
+    }
+    
+    .section-header {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    h1 { font-size: calc(var(--font-size-h1) * 0.8); }
+    h2 { font-size: calc(var(--font-size-h2) * 0.8); }
+}
+
+/* Responsive Text Alignments */
+@media (max-width: 768px) {
+    .text-md-center { text-align: center !important; }
+    .text-md-left { text-align: left !important; }
+    .text-md-right { text-align: right !important; }
+    
+    .d-md-none { display: none !important; }
+    .d-md-block { display: block !important; }
+    .d-md-flex { display: flex !important; }
+}
+
+/* Responsive Grid System */
+.grid {
+    display: grid;
+    grid-gap: var(--spacing-md);
+}
+
+.grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 992px) {
+    .grid-lg-1 {
+        grid-template-columns: 1fr;
+    }
+    
+    .grid-lg-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .grid-md-1 {
+        grid-template-columns: 1fr;
+    }
+    
+    .grid-md-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Card Layouts */
+.card-deck {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: calc(var(--spacing-md) * -1);
+    margin-left: calc(var(--spacing-md) * -1);
+}
+
+.card-deck .card {
+    flex: 1 0 300px;
+    margin-right: var(--spacing-md);
+    margin-left: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+@media (max-width: 768px) {
+    .card-deck .card {
+        flex: 1 0 100%;
+    }
+}
+
+/* Responsive Images */
+.img-fluid {
+    max-width: 100%;
+    height: auto;
+}
+
+.img-rounded {
+    border-radius: var(--border-radius);
+}
+
+.img-circle {
+    border-radius: 50%;
+}
+
+/* Responsive Tables */
+@media (max-width: 768px) {
+    .table-responsive-md {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .table-stack-md thead {
+        display: none;
+    }
+    
+    .table-stack-md tr {
+        display: block;
+        border: 1px solid var(--border-color);
+        margin-bottom: var(--spacing-md);
+        border-radius: var(--border-radius);
+    }
+    
+    .table-stack-md td {
+        display: block;
+        text-align: right;
+        border-bottom: 1px solid var(--border-color);
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    .table-stack-md td::before {
+        content: attr(data-label);
+        float: left;
+        font-weight: bold;
+        color: var(--text-medium);
+    }
+    
+    .table-stack-md td:last-child {
+        border-bottom: none;
+    }
+} 

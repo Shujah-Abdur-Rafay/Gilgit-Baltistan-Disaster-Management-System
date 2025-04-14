@@ -1,14 +1,14 @@
 /* Global Styles */
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: var(--font-family-base);
 }
 
 header h1 {
-    font-size: 2rem;
-    font-weight: bold;
-    color: white;
-    background-color: forestgreen;
-    padding: 10px;
+    font-size: var(--font-size-h1);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-light);
+    background-color: var(--primary-color);
+    padding: var(--spacing-md);
     border: none;
 }
 
@@ -17,70 +17,76 @@ header h1 {
     cursor: pointer;
     width: 3.5rem;
     height: 2.5rem;
-    color: white;
+    color: var(--text-light);
     position: absolute;
     top: 0.5rem;
     right: 1rem;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    background: url("data:image/svg+xml,%3Csvg...%3C/svg%3E") no-repeat center/1.75rem forestgreen;
+    background: url("data:image/svg+xml,%3Csvg...%3C/svg%3E") no-repeat center/1.75rem var(--primary-color);
 }
 
     .navbar-toggler:checked {
-        background-color: forestgreen;
+        background-color: var(--primary-dark);
     }
 
 .top-row {
     height: 3.5rem;
-    background-color: forestgreen;
+    background-color: var(--primary-color);
 }
 
 .navbar-brand {
-    font-size: 1.1rem;
+    font-size: var(--font-size-lg);
+    color: var(--text-light);
+    font-weight: var(--font-weight-bold);
 }
 
 .bi {
     display: inline-block;
     width: 1.25rem;
     height: 1.25rem;
-    margin-right: 0.75rem;
+    margin-right: var(--spacing-md);
     top: -1px;
+    color: var(--text-light);
 }
 
 .nav-item {
-    font-size: 0.9rem;
-    padding-bottom: 0.5rem;
+    font-size: var(--font-size-base);
+    padding-bottom: var(--spacing-sm);
 }
 
     .nav-item:first-of-type {
-        padding-top: 1rem;
+        padding-top: var(--spacing-md);
     }
 
     .nav-item:last-of-type {
-        padding-bottom: 1rem;
+        padding-bottom: var(--spacing-md);
     }
 
     .nav-item ::deep a {
-        color: #d7d7d7;
-        border-radius: 4px;
+        color: var(--text-light);
+        border-radius: var(--border-radius);
         height: 3rem;
         display: flex;
         align-items: center;
         line-height: 3rem;
+        padding-left: var(--spacing-md);
+        transition: var(--transition-base);
     }
 
         .nav-item ::deep a.active {
-            background-color: darkgreen;
-            color: white;
+            background-color: var(--primary-dark);
+            color: var(--text-light);
+            font-weight: var(--font-weight-medium);
         }
 
         .nav-item ::deep a:hover {
-            background-color: limegreen;
-            color: white;
+            background-color: var(--primary-light);
+            color: var(--text-light);
         }
 
 .nav-scrollable {
     display: none;
-    background-color: forestgreen;
+    background-color: var(--primary-color);
 }
 
 .navbar-toggler:checked ~ .nav-scrollable {

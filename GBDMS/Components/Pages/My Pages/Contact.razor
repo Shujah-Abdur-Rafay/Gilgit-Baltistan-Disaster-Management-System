@@ -1,41 +1,46 @@
 ﻿@page "/contact"
 @using Microsoft.AspNetCore.Components
 
-<div class="header text-center p-4 bg-white shadow-sm">
-    <h1>Gilgit Baltistan Disaster Management System</h1>
-    <p>Gilgit-Baltistan, Pakistan</p>
+<div class="page-header bg-white shadow-sm text-center p-4 mb-4">
+    <h1 class="mb-2">Gilgit Baltistan Disaster Management System</h1>
+    <p class="text-medium mb-0">Gilgit-Baltistan, Pakistan</p>
 </div>
-<div class="contact-section text-white text-center py-4 forest-green-bg">
-    <h2>CONTACT US</h2>
+
+<div class="section-header bg-primary text-light text-center py-4 mb-4">
+    <h2 class="mb-0">CONTACT US</h2>
 </div>
+
 <div class="container mt-4">
     <div class="card mx-auto shadow p-4" style="max-width: 500px;">
         <div class="form-group">
             <label for="fullName">Full Name</label>
             <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
                 <input type="text" id="fullName" class="form-control" placeholder="Full Name">
             </div>
         </div>
         <div class="form-group">
             <label for="email">E-mail</label>
             <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                 <input type="email" id="email" class="form-control" placeholder="E-mail">
             </div>
         </div>
         <div class="form-group">
             <label for="contactNumber">Contact Number</label>
             <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
                 <input type="text" id="contactNumber" class="form-control" placeholder="Contact Number">
             </div>
         </div>
         <div class="form-group">
             <label for="remarks">Remarks</label>
             <div class="input-group">
-                <textarea id="remarks" class="form-control" placeholder="Remarks"></textarea>
+                <span class="input-group-text"><i class="bi bi-chat-text"></i></span>
+                <textarea id="remarks" class="form-control" placeholder="Remarks" rows="4"></textarea>
             </div>
         </div>
-        <button class="btn btn-block" style="background-color: forestgreen; color: white;">Send Message</button>
-
+        <button class="btn btn-primary w-100">Send Message</button>
     </div>
 </div>
 

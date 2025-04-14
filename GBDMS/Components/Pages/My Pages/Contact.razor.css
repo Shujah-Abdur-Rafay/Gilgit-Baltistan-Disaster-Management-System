@@ -1,0 +1,54 @@
+.page-header {
+    border-bottom: 3px solid var(--primary-color);
+    margin-bottom: var(--spacing-lg);
+}
+
+.page-header h1 {
+    color: var(--primary-color);
+    font-weight: var(--font-weight-bold);
+}
+
+.section-header {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    box-shadow: var(--box-shadow);
+    margin-bottom: var(--spacing-lg);
+}
+
+.input-group-text {
+    background-color: var(--primary-light);
+    color: var(--text-light);
+    border-color: var(--primary-color);
+}
+
+.input-group-text i {
+    color: var(--text-light);
+}
+
+textarea {
+    min-height: 100px;
+}
+
+.card {
+    border-top: 4px solid var(--primary-color);
+    transition: var(--transition-base);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--box-shadow-lg);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-weight: var(--font-weight-medium);
+    transition: var(--transition-base);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+    transform: translateY(-2px);
+} 
