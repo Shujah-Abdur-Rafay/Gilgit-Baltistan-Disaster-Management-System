@@ -1,14 +1,16 @@
 ﻿@page "/damage"
 @inject IJSRuntime JS
+@inject IUserRepository _userRepository
+@inject IInventoryRepository _inventoryRepository
 
-<div class="container-fluid">
-    <h2 class="mb-4">Rapid Damage Assessment</h2>
+<div class="container">
+    <h2 class="text-center mb-4 text-success">Rapid Damage Assessment</h2>
 
     <div class="row">
-        <!-- Location Selection and Incident Details -->
+        <!-- Basic Location Selection -->
         <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
+            <div class="card simple-card">
+                <div class="card-header">
                     <h5 class="mb-0">Location</h5>
                 </div>
                 <div class="card-body">
@@ -37,18 +39,51 @@
                             <option value="Other">Other</option>
                         </select>
                     </div>
-                </div>
-            </div>
-
-            <!-- Incident Details -->
-            <div class="card mt-3">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">Incident Details</h5>
-                </div>
-                <div class="card-body">
+                    
                     <div class="mb-3">
                         <label class="form-label">Incident Date</label>
                         <input type="date" class="form-control" @bind="incidentDate" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simplified Damage Assessment -->
+        <div class="col-md-8">
+            <div class="card simple-card">
+                <div class="card-header">
+                    <h5 class="mb-0">Damage Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Structures Affected</label>
+                            <input type="number" class="form-control" @bind="structuresAffected" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Infrastructure Damage</label>
+                            <input type="number" class="form-control" @bind="infrastructureDamage" />
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Fatalities</label>
+                            <input type="number" class="form-control" @bind="fatalities" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Injuries</label>
+                            <input type="number" class="form-control" @bind="injuries" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Displaced</label>
+                            <input type="number" class="form-control" @bind="displaced" />
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" rows="3" @bind="notes"></textarea>
                     </div>
                     
                     <div class="mb-3">
@@ -62,521 +97,260 @@
                         </select>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label">Affected Area (sq km)</label>
-                        <input type="number" class="form-control" @bind="affectedArea" />
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <textarea class="form-control" rows="3" @bind="incidentDescription"></textarea>
-                    </div>
-                    
-                    <button class="btn btn-primary" @onclick="SaveAssessment">Save Assessment</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Damage Assessment and Map -->
-        <div class="col-md-8">
-            <!-- Damage Assessment Tabs -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <ul class="nav nav-tabs card-header-tabs" id="assessmentTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="structures-tab" data-bs-toggle="tab" data-bs-target="#structures" type="button" role="tab" aria-controls="structures" aria-selected="true">Structures</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="infrastructure-tab" data-bs-toggle="tab" data-bs-target="#infrastructure" type="button" role="tab" aria-controls="infrastructure" aria-selected="false">Infrastructure</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="casualties-tab" data-bs-toggle="tab" data-bs-target="#casualties" type="button" role="tab" aria-controls="casualties" aria-selected="false">Casualties</button>
-                        </li>
-                    </ul>
-                </div>
-                <div class="card-body">
-                    <div class="tab-content" id="assessmentTabsContent">
-                        <!-- Structures Damage -->
-                        <div class="tab-pane fade show active" id="structures" role="tabpanel" aria-labelledby="structures-tab">
-                            <h5>Building Damage Assessment</h5>
-                            <div class="table-responsive">
-                                <table class="table table-bordered">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Building Type</th>
-                                            <th>Destroyed</th>
-                                            <th>Major Damage</th>
-                                            <th>Minor Damage</th>
-                                            <th>Affected</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Residential</td>
-                                            <td><input type="number" class="form-control" @bind="residentialDestroyed" /></td>
-                                            <td><input type="number" class="form-control" @bind="residentialMajor" /></td>
-                                            <td><input type="number" class="form-control" @bind="residentialMinor" /></td>
-                                            <td><input type="number" class="form-control" @bind="residentialAffected" /></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Commercial</td>
-                                            <td><input type="number" class="form-control" @bind="commercialDestroyed" /></td>
-                                            <td><input type="number" class="form-control" @bind="commercialMajor" /></td>
-                                            <td><input type="number" class="form-control" @bind="commercialMinor" /></td>
-                                            <td><input type="number" class="form-control" @bind="commercialAffected" /></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Public</td>
-                                            <td><input type="number" class="form-control" @bind="publicDestroyed" /></td>
-                                            <td><input type="number" class="form-control" @bind="publicMajor" /></td>
-                                            <td><input type="number" class="form-control" @bind="publicMinor" /></td>
-                                            <td><input type="number" class="form-control" @bind="publicAffected" /></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        
-                        <!-- Infrastructure Damage -->
-                        <div class="tab-pane fade" id="infrastructure" role="tabpanel" aria-labelledby="infrastructure-tab">
-                            <h5>Infrastructure Damage</h5>
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <div class="card h-100">
-                                        <div class="card-header bg-light">
-                                            <h6 class="mb-0">Roads & Bridges</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="mb-3">
-                                                <label class="form-label">Roads Damaged (km)</label>
-                                                <input type="number" class="form-control" @bind="roadsDamaged" />
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Bridges Damaged</label>
-                                                <input type="number" class="form-control" @bind="bridgesDamaged" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="card h-100">
-                                        <div class="card-header bg-light">
-                                            <h6 class="mb-0">Utilities</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="mb-3">
-                                                <label class="form-label">Power Lines Damaged (km)</label>
-                                                <input type="number" class="form-control" @bind="powerLinesDamaged" />
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Water Systems Affected</label>
-                                                <input type="number" class="form-control" @bind="waterSystemsAffected" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" @bind="communicationsAffected" id="communicationsCheck" />
-                                <label class="form-check-label" for="communicationsCheck">
-                                    Communications Network Affected
-                                </label>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Agricultural Land Damaged (acres)</label>
-                                <input type="number" class="form-control" @bind="agriculturalLandDamaged" />
-                            </div>
-                        </div>
-                        
-                        <!-- Casualties Tab -->
-                        <div class="tab-pane fade" id="casualties" role="tabpanel" aria-labelledby="casualties-tab">
-                            <h5>Casualties & Displacement</h5>
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <div class="card h-100">
-                                        <div class="card-header bg-light">
-                                            <h6 class="mb-0">Human Impact</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="mb-3">
-                                                <label class="form-label">Fatalities</label>
-                                                <input type="number" class="form-control" @bind="fatalities" />
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Injuries</label>
-                                                <input type="number" class="form-control" @bind="injuries" />
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Missing</label>
-                                                <input type="number" class="form-control" @bind="missing" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="card h-100">
-                                        <div class="card-header bg-light">
-                                            <h6 class="mb-0">Displacement</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="mb-3">
-                                                <label class="form-label">Displaced Households</label>
-                                                <input type="number" class="form-control" @bind="displacedHouseholds" />
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">People in Shelters</label>
-                                                <input type="number" class="form-control" @bind="peopleInShelters" />
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">People Requiring Evacuation</label>
-                                                <input type="number" class="form-control" @bind="peopleRequiringEvacuation" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Damage Map -->
-            <div class="card">
-                <div class="card-header bg-danger text-white">
-                    <h5 class="mb-0">Damage Map</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div id="damageMap" style="width: 100%; height: 400px;"></div>
-                </div>
-                <div class="card-footer">
-                    <div class="btn-group" role="group">
-                        <input type="radio" class="btn-check" name="mapType" id="mapStructures" autocomplete="off" checked @onclick="@(() => ChangeMapLayer("structures"))">
-                        <label class="btn btn-outline-danger" for="mapStructures">Structures</label>
-
-                        <input type="radio" class="btn-check" name="mapType" id="mapInfrastructure" autocomplete="off" @onclick="@(() => ChangeMapLayer("infrastructure"))">
-                        <label class="btn btn-outline-danger" for="mapInfrastructure">Infrastructure</label>
-
-                        <input type="radio" class="btn-check" name="mapType" id="mapCasualties" autocomplete="off" @onclick="@(() => ChangeMapLayer("casualties"))">
-                        <label class="btn btn-outline-danger" for="mapCasualties">Casualties</label>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Response Summary -->
-            <div class="card mt-4">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0">Response Summary</h5>
-                </div>
-                <div class="card-body">
                     <div class="alert @GetSeverityAlertClass(severityLevel)">
                         <strong>Overall Severity:</strong> @severityLevel
                     </div>
                     
-                    <h6>Response Resources Deployed:</h6>
-                    <ul class="list-group mb-3">
-                        @foreach (var resource in responseResources)
-                        {
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                @resource.Name
-                                <span class="badge bg-primary rounded-pill">@resource.Count</span>
-                            </li>
-                        }
-                    </ul>
+                    <button class="btn btn-success w-100 mb-3" @onclick="SaveAssessment">Save Assessment</button>
                     
-                    <h6>Priority Needs:</h6>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" @bind="needsShelter" id="needShelter">
-                        <label class="form-check-label" for="needShelter">Emergency Shelter</label>
-                    </div>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" @bind="needsFood" id="needFood">
-                        <label class="form-check-label" for="needFood">Food & Water</label>
-                    </div>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" @bind="needsMedical" id="needMedical">
-                        <label class="form-check-label" for="needMedical">Medical Services</label>
-                    </div>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" @bind="needsEvacuation" id="needEvacuation">
-                        <label class="form-check-label" for="needEvacuation">Evacuation Assistance</label>
-                    </div>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" @bind="needsSearch" id="needSearch">
-                        <label class="form-check-label" for="needSearch">Search & Rescue</label>
-                    </div>
+                    @if(statusMessage != "")
+                    {
+                        <div class="alert alert-@statusType mt-3">
+                            @statusMessage
+                        </div>
+                    }
                 </div>
             </div>
+            
+            <!-- Saved Assessments -->
+            @if(savedAssessments.Count > 0)
+            {
+                <div class="card simple-card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Saved Assessments</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>District</th>
+                                        <th>Incident Type</th>
+                                        <th>Date</th>
+                                        <th>Severity</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach(var assessment in savedAssessments)
+                                    {
+                                        <tr>
+                                            <td>@assessment.District</td>
+                                            <td>@assessment.IncidentType</td>
+                                            <td>@assessment.IncidentDate.ToString("yyyy-MM-dd")</td>
+                                            <td><span class="badge bg-@GetSeverityBadgeClass(assessment.SeverityLevel)">@assessment.SeverityLevel</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary" @onclick="() => LoadAssessment(assessment)">
+                                                    <i class="bi bi-folder-open"></i> Load
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>
 
 @code {
-    // Location and incident properties
+    // Basic properties
     private string selectedDistrict = "Gilgit";
     private string selectedIncidentType = "Earthquake";
     private DateTime incidentDate = DateTime.Now;
     private string severityLevel = "Moderate";
-    private double affectedArea = 0;
-    private string incidentDescription = "";
+    private string notes = "";
     
-    // Building damage properties
-    private int residentialDestroyed = 0;
-    private int residentialMajor = 0;
-    private int residentialMinor = 0;
-    private int residentialAffected = 0;
-    
-    private int commercialDestroyed = 0;
-    private int commercialMajor = 0;
-    private int commercialMinor = 0;
-    private int commercialAffected = 0;
-    
-    private int publicDestroyed = 0;
-    private int publicMajor = 0;
-    private int publicMinor = 0;
-    private int publicAffected = 0;
-    
-    // Infrastructure properties
-    private double roadsDamaged = 0;
-    private int bridgesDamaged = 0;
-    private double powerLinesDamaged = 0;
-    private int waterSystemsAffected = 0;
-    private bool communicationsAffected = false;
-    private double agriculturalLandDamaged = 0;
-    
-    // Casualties properties
+    // Simplified damage properties
+    private int structuresAffected = 0;
+    private int infrastructureDamage = 0;
     private int fatalities = 0;
     private int injuries = 0;
-    private int missing = 0;
-    private int displacedHouseholds = 0;
-    private int peopleInShelters = 0;
-    private int peopleRequiringEvacuation = 0;
+    private int displaced = 0;
     
-    // Response properties
-    private List<ResponseResource> responseResources = new();
-    private bool needsShelter = false;
-    private bool needsFood = false;
-    private bool needsMedical = false;
-    private bool needsEvacuation = false;
-    private bool needsSearch = false;
+    // Status properties
+    private string statusMessage = "";
+    private string statusType = "success";
     
-    // Map properties
-    private string currentMapLayer = "structures";
-    private bool isMapInitialized = false;
+    // Database related properties
+    private List<DamageAssessmentRecord> savedAssessments = new List<DamageAssessmentRecord>();
+    private int currentAssessmentId = 0;
     
     protected override async Task OnInitializedAsync()
     {
-        await LoadDistrictData();
-        InitializeResponseResources();
+        await LoadSavedAssessments();
     }
     
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task LoadSavedAssessments()
     {
-        if (firstRender)
+        try
         {
-            await InitializeDamageMap();
+            // In a real implementation, you would retrieve damage assessments from the database here
+            // This is a placeholder that creates sample data
+            if (savedAssessments.Count == 0)
+            {
+                savedAssessments = new List<DamageAssessmentRecord>
+                {
+                    new DamageAssessmentRecord
+                    {
+                        Id = 1,
+                        District = "Gilgit",
+                        IncidentType = "Earthquake",
+                        IncidentDate = DateTime.Now.AddDays(-5),
+                        SeverityLevel = "High",
+                        StructuresAffected = 45,
+                        InfrastructureDamage = 28,
+                        Fatalities = 12,
+                        Injuries = 67,
+                        Displaced = 150,
+                        Notes = "Major damage to residential areas.",
+                        CreatedById = 1,
+                        CreatedDate = DateTime.Now.AddDays(-5)
+                    },
+                    new DamageAssessmentRecord
+                    {
+                        Id = 2,
+                        District = "Skardu",
+                        IncidentType = "Flood",
+                        IncidentDate = DateTime.Now.AddDays(-10),
+                        SeverityLevel = "Moderate",
+                        StructuresAffected = 32,
+                        InfrastructureDamage = 45,
+                        Fatalities = 3,
+                        Injuries = 15,
+                        Displaced = 230,
+                        Notes = "Flooding affected agricultural lands.",
+                        CreatedById = 1,
+                        CreatedDate = DateTime.Now.AddDays(-10)
+                    }
+                };
+            }
         }
-    }
-    
-    private void InitializeResponseResources()
-    {
-        responseResources = new List<ResponseResource>
+        catch (Exception ex)
         {
-            new ResponseResource { Name = "Emergency Response Teams", Count = 5 },
-            new ResponseResource { Name = "Medical Units", Count = 3 },
-            new ResponseResource { Name = "Relief Distribution Points", Count = 8 },
-            new ResponseResource { Name = "Temporary Shelters", Count = 12 }
-        };
+            ShowMessage($"Error loading saved assessments: {ex.Message}", "danger");
+        }
     }
     
     private async Task LoadDistrictData()
     {
-        // This would fetch real data in a production environment
-        // For now, let's simulate data based on the district and incident type
-        
+        // Simplified data loading
         var random = new Random();
         
-        // Reset values with some randomization based on district and incident type
         if (selectedIncidentType == "Earthquake")
         {
-            residentialDestroyed = random.Next(10, 50);
-            residentialMajor = random.Next(20, 100);
+            structuresAffected = random.Next(10, 50);
+            infrastructureDamage = random.Next(5, 30);
             fatalities = random.Next(5, 30);
             injuries = random.Next(20, 100);
+            displaced = random.Next(50, 200);
         }
         else if (selectedIncidentType == "Flood")
         {
-            residentialAffected = random.Next(50, 200);
-            agriculturalLandDamaged = random.Next(50, 500);
-            roadsDamaged = random.Next(5, 30);
-            displacedHouseholds = random.Next(20, 100);
+            structuresAffected = random.Next(50, 200);
+            infrastructureDamage = random.Next(20, 80);
+            fatalities = random.Next(1, 10);
+            injuries = random.Next(10, 50);
+            displaced = random.Next(100, 500);
         }
         else if (selectedIncidentType == "Landslide")
         {
-            roadsDamaged = random.Next(1, 10);
-            bridgesDamaged = random.Next(0, 3);
-            residentialDestroyed = random.Next(5, 20);
+            structuresAffected = random.Next(5, 20);
+            infrastructureDamage = random.Next(1, 10);
             fatalities = random.Next(0, 15);
+            injuries = random.Next(5, 25);
+            displaced = random.Next(20, 100);
         }
-        
-        if (isMapInitialized)
-        {
-            await UpdateDamageMap();
-        }
-    }
-    
-    private async Task InitializeDamageMap()
-    {
-        try
-        {
-            // Center on Gilgit-Baltistan region
-            await JS.InvokeVoidAsync("eval", @"
-                let map = L.map('damageMap').setView([35.8884, 74.4584], 7);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-                // Add district boundaries
-                fetch('/data/gb-districts.geojson')
-                    .then(response => response.json())
-                    .then(data => {
-                        L.geoJSON(data, {
-                            style: {
-                                color: '#800000',
-                                weight: 1,
-                                fillOpacity: 0.1
-                            },
-                            onEachFeature: (feature, layer) => {
-                                if (feature.properties && feature.properties.name) {
-                                    layer.bindPopup(feature.properties.name);
-                                }
-                            }
-                        }).addTo(map);
-                    })
-                    .catch(err => console.error('Error loading GeoJSON:', err));
-
-                window.damageMap = map;
-
-                // Create layer groups for different damage data
-                window.damageLayers = {
-                    structures: L.layerGroup().addTo(map),
-                    infrastructure: L.layerGroup(),
-                    casualties: L.layerGroup()
-                };
-            ");
-            
-            isMapInitialized = true;
-            await UpdateDamageMap();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error initializing damage map: {ex.Message}");
-        }
-    }
-    
-    private async Task UpdateDamageMap()
-    {
-        try
-        {
-            // Prepare the damage data for the map
-            var structureDamage = residentialDestroyed + residentialMajor + commercialDestroyed + publicDestroyed;
-            var infraDamage = roadsDamaged + bridgesDamaged + powerLinesDamaged;
-            var casualtyCount = fatalities + injuries + missing;
-            
-            await JS.InvokeVoidAsync("eval", @"
-                // Clear all layers
-                Object.values(window.damageLayers).forEach(layer => layer.clearLayers());
-
-                // Simulate damage data points
-                const districts = [
-                    { name: 'Gilgit', lat: 35.9212, lng: 74.3481, structures: " + (selectedDistrict == "Gilgit" ? structureDamage : random.Next(0, 10)) + @", infra: " + (selectedDistrict == "Gilgit" ? infraDamage : random.Next(0, 5)) + @", casualties: " + (selectedDistrict == "Gilgit" ? casualtyCount : random.Next(0, 5)) + @" },
-                    { name: 'Skardu', lat: 35.2896, lng: 75.6372, structures: " + (selectedDistrict == "Skardu" ? structureDamage : random.Next(0, 10)) + @", infra: " + (selectedDistrict == "Skardu" ? infraDamage : random.Next(0, 5)) + @", casualties: " + (selectedDistrict == "Skardu" ? casualtyCount : random.Next(0, 5)) + @" },
-                    { name: 'Hunza', lat: 36.3195, lng: 74.6472, structures: " + (selectedDistrict == "Hunza" ? structureDamage : random.Next(0, 10)) + @", infra: " + (selectedDistrict == "Hunza" ? infraDamage : random.Next(0, 5)) + @", casualties: " + (selectedDistrict == "Hunza" ? casualtyCount : random.Next(0, 5)) + @" },
-                    { name: 'Astore', lat: 35.3665, lng: 74.8559, structures: " + (selectedDistrict == "Astore" ? structureDamage : random.Next(0, 10)) + @", infra: " + (selectedDistrict == "Astore" ? infraDamage : random.Next(0, 5)) + @", casualties: " + (selectedDistrict == "Astore" ? casualtyCount : random.Next(0, 5)) + @" },
-                    { name: 'Ghanche', lat: 35.2939, lng: 76.7298, structures: " + (selectedDistrict == "Ghanche" ? structureDamage : random.Next(0, 10)) + @", infra: " + (selectedDistrict == "Ghanche" ? infraDamage : random.Next(0, 5)) + @", casualties: " + (selectedDistrict == "Ghanche" ? casualtyCount : random.Next(0, 5)) + @" },
-                    { name: 'Ghizer', lat: 36.3022, lng: 73.3498, structures: " + (selectedDistrict == "Ghizer" ? structureDamage : random.Next(0, 10)) + @", infra: " + (selectedDistrict == "Ghizer" ? infraDamage : random.Next(0, 5)) + @", casualties: " + (selectedDistrict == "Ghizer" ? casualtyCount : random.Next(0, 5)) + @" },
-                    { name: 'Nagar', lat: 36.2579, lng: 74.0799, structures: " + (selectedDistrict == "Nagar" ? structureDamage : random.Next(0, 10)) + @", infra: " + (selectedDistrict == "Nagar" ? infraDamage : random.Next(0, 5)) + @", casualties: " + (selectedDistrict == "Nagar" ? casualtyCount : random.Next(0, 5)) + @" },
-                    { name: 'Shigar', lat: 35.4765, lng: 75.5420, structures: " + (selectedDistrict == "Shigar" ? structureDamage : random.Next(0, 10)) + @", infra: " + (selectedDistrict == "Shigar" ? infraDamage : random.Next(0, 5)) + @", casualties: " + (selectedDistrict == "Shigar" ? casualtyCount : random.Next(0, 5)) + @" }
-                ];
-
-                // Add structure damage layer
-                districts.forEach(d => {
-                    // Structure damage marker with color based on damage level
-                    const structureSize = Math.max(10, d.structures / 2);
-                    const structureColor = d.structures < 10 ? '#ffeb3b' :
-                                        d.structures < 50 ? '#ff9800' : '#f44336';
-
-                    const structureMarker = L.circleMarker([d.lat, d.lng], {
-                        radius: structureSize,
-                        color: structureColor,
-                        fillColor: structureColor,
-                        fillOpacity: 0.5
-                    }).bindPopup(`<b>${d.name}</b><br>Building Damage: ${d.structures}`);
-
-                    window.damageLayers.structures.addLayer(structureMarker);
-
-                    // Infrastructure damage marker
-                    const infraSize = Math.max(8, d.infra * 2);
-                    const infraColor = d.infra < 5 ? '#4caf50' :
-                                     d.infra < 20 ? '#ff9800' : '#f44336';
-
-                    const infraMarker = L.circleMarker([d.lat, d.lng], {
-                        radius: infraSize,
-                        color: infraColor,
-                        fillColor: infraColor,
-                        fillOpacity: 0.5
-                    }).bindPopup(`<b>${d.name}</b><br>Infrastructure Damage: ${d.infra}`);
-
-                    window.damageLayers.infrastructure.addLayer(infraMarker);
-
-                    // Casualties marker
-                    const casualtySize = Math.max(8, d.casualties * 2);
-                    const casualtyColor = d.casualties < 5 ? '#4caf50' :
-                                        d.casualties < 20 ? '#ff9800' : '#f44336';
-
-                    const casualtyMarker = L.circleMarker([d.lat, d.lng], {
-                        radius: casualtySize,
-                        color: casualtyColor,
-                        fillColor: casualtyColor,
-                        fillOpacity: 0.5
-                    }).bindPopup(`<b>${d.name}</b><br>Casualties: ${d.casualties}`);
-
-                    window.damageLayers.casualties.addLayer(casualtyMarker);
-                });
-
-                // Show the selected layer
-                Object.keys(window.damageLayers).forEach(key => {
-                    if (key === '" + currentMapLayer + @"') {
-                        if (!window.damageMap.hasLayer(window.damageLayers[key])) {
-                            window.damageMap.addLayer(window.damageLayers[key]);
-                        }
-                    } else {
-                        if (window.damageMap.hasLayer(window.damageLayers[key])) {
-                            window.damageMap.removeLayer(window.damageLayers[key]);
-                        }
-                    }
-                });
-            ");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error updating damage map: {ex.Message}");
-        }
-    }
-    
-    private async Task ChangeMapLayer(string layer)
-    {
-        currentMapLayer = layer;
-        await UpdateDamageMap();
     }
     
     private async Task SaveAssessment()
     {
-        // In a real app, this would save data to a database
-        // For this example, just show an alert
+        try
+        {
+            // Get the current user ID (in a real implementation)
+            var users = await _userRepository.GetAllAsync();
+            var currentUserId = users.FirstOrDefault()?.Id ?? 1;
+            
+            // Create a new assessment object
+            var assessment = new DamageAssessmentRecord
+            {
+                Id = currentAssessmentId > 0 ? currentAssessmentId : savedAssessments.Count + 1,
+                District = selectedDistrict,
+                IncidentType = selectedIncidentType,
+                IncidentDate = incidentDate,
+                SeverityLevel = severityLevel,
+                StructuresAffected = structuresAffected,
+                InfrastructureDamage = infrastructureDamage,
+                Fatalities = fatalities,
+                Injuries = injuries,
+                Displaced = displaced,
+                Notes = notes,
+                CreatedById = currentUserId,
+                CreatedDate = DateTime.Now
+            };
+            
+            // In a real implementation, you would save to the database here
+            
+            // For now, just update our local list
+            if (currentAssessmentId > 0)
+            {
+                // Update existing assessment
+                var index = savedAssessments.FindIndex(a => a.Id == currentAssessmentId);
+                if (index >= 0)
+                {
+                    savedAssessments[index] = assessment;
+                }
+            }
+            else
+            {
+                // Add new assessment
+                savedAssessments.Add(assessment);
+            }
+            
+            ShowMessage($"Damage Assessment for {selectedDistrict} saved successfully!");
+            ClearForm();
+        }
+        catch (Exception ex)
+        {
+            ShowMessage($"Error saving assessment: {ex.Message}", "danger");
+        }
+    }
+    
+    private void LoadAssessment(DamageAssessmentRecord assessment)
+    {
+        currentAssessmentId = assessment.Id;
+        selectedDistrict = assessment.District;
+        selectedIncidentType = assessment.IncidentType;
+        incidentDate = assessment.IncidentDate;
+        severityLevel = assessment.SeverityLevel;
+        structuresAffected = assessment.StructuresAffected;
+        infrastructureDamage = assessment.InfrastructureDamage;
+        fatalities = assessment.Fatalities;
+        injuries = assessment.Injuries;
+        displaced = assessment.Displaced;
+        notes = assessment.Notes;
         
-        await JS.InvokeVoidAsync("alert", $"Damage Assessment for {selectedDistrict} saved successfully!");
-        
-        // Here you would typically call a service method to save the data
+        ShowMessage($"Loaded assessment for {assessment.District}", "info");
+    }
+    
+    private void ClearForm()
+    {
+        currentAssessmentId = 0;
+        structuresAffected = 0;
+        infrastructureDamage = 0;
+        fatalities = 0;
+        injuries = 0;
+        displaced = 0;
+        notes = "";
+    }
+    
+    private void ShowMessage(string message, string type = "success")
+    {
+        statusMessage = message;
+        statusType = type;
     }
     
     private string GetSeverityAlertClass(string severity)
@@ -592,12 +366,34 @@
         };
     }
     
-    private Random random = new Random();
-    
-    // Data models
-    private class ResponseResource
+    private string GetSeverityBadgeClass(string severity)
     {
-        public string Name { get; set; } = "";
-        public int Count { get; set; } = 0;
+        return severity switch
+        {
+            "Low" => "success",
+            "Moderate" => "warning",
+            "High" => "danger",
+            "Severe" => "danger",
+            "Catastrophic" => "dark",
+            _ => "secondary"
+        };
+    }
+    
+    // Data model to represent a damage assessment record
+    private class DamageAssessmentRecord
+    {
+        public int Id { get; set; }
+        public string District { get; set; } = "";
+        public string IncidentType { get; set; } = "";
+        public DateTime IncidentDate { get; set; }
+        public string SeverityLevel { get; set; } = "";
+        public int StructuresAffected { get; set; }
+        public int InfrastructureDamage { get; set; }
+        public int Fatalities { get; set; }
+        public int Injuries { get; set; }
+        public int Displaced { get; set; }
+        public string Notes { get; set; } = "";
+        public int CreatedById { get; set; }
+        public DateTime CreatedDate { get; set; }
     }
 }
