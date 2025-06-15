@@ -1,92 +1,131 @@
-/* Global Styles */
-body {
-    font-family: var(--font-family-base);
-}
-
-header h1 {
-    font-size: var(--font-size-h1);
-    font-weight: var(--font-weight-bold);
-    color: var(--text-light);
-    background-color: var(--primary-color);
-    padding: var(--spacing-md);
-    border: none;
-}
+/* Navigation Menu Styles */
 
 .navbar-toggler {
     appearance: none;
     cursor: pointer;
     width: 3.5rem;
     height: 2.5rem;
-    color: var(--text-light);
+    color: #ffffff;
     position: absolute;
     top: 0.5rem;
     right: 1rem;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    background: url("data:image/svg+xml,%3Csvg...%3C/svg%3E") no-repeat center/1.75rem var(--primary-color);
+    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='m4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.75rem #3d8450;
+    border-radius: 4px;
 }
 
     .navbar-toggler:checked {
-        background-color: var(--primary-dark);
+        background-color: #2d6e3e;
     }
 
 .top-row {
     height: 3.5rem;
-    background-color: var(--primary-color);
+    background-color: #3d8450;
 }
 
 .navbar-brand {
-    font-size: var(--font-size-lg);
-    color: var(--text-light);
-    font-weight: var(--font-weight-bold);
+    font-size: 1.25rem;
+    color: #ffffff;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
 }
 
-.bi {
-    display: inline-block;
-    width: 1.25rem;
-    height: 1.25rem;
-    margin-right: var(--spacing-md);
-    top: -1px;
-    color: var(--text-light);
-}
+    .navbar-brand:hover {
+        color: #ffffff;
+        text-decoration: none;
+    }
 
+    .navbar-brand i {
+        margin-right: 8px;
+        font-size: 1.1rem;
+    }
+
+/* Navigation Items */
 .nav-item {
-    font-size: var(--font-size-base);
-    padding-bottom: var(--spacing-sm);
+    font-size: 0.95rem;
+    margin-bottom: 2px;
 }
 
     .nav-item:first-of-type {
-        padding-top: var(--spacing-md);
+        margin-top: 1rem;
     }
 
     .nav-item:last-of-type {
-        padding-bottom: var(--spacing-md);
+        margin-bottom: 1rem;
     }
 
     .nav-item ::deep a {
-        color: var(--text-light);
-        border-radius: var(--border-radius);
-        height: 3rem;
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 6px;
+        height: 48px;
         display: flex;
         align-items: center;
-        line-height: 3rem;
-        padding-left: var(--spacing-md);
-        transition: var(--transition-base);
+        padding: 0 16px;
+        margin: 0 12px;
+        transition: all 0.2s ease-in-out;
+        position: relative;
     }
 
-        .nav-item ::deep a.active {
-            background-color: var(--primary-dark);
-            color: var(--text-light);
-            font-weight: var(--font-weight-medium);
+        .nav-item ::deep a:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            text-decoration: none;
         }
 
-        .nav-item ::deep a:hover {
-            background-color: var(--primary-light);
-            color: var(--text-light);
+        .nav-item ::deep a.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-weight: 500;
         }
+
+/* Navigation Icons */
+.nav-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    font-size: 16px;
+    color: inherit;
+}
+
+/* Navigation Text */
+.nav-text {
+    flex: 1;
+    line-height: 1.2;
+    font-weight: 400;
+    color: inherit;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Ensure proper spacing and alignment */
+nav.flex-column {
+    padding: 0;
+    margin: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .nav-item ::deep a {
+        margin: 0 8px;
+        padding: 0 12px;
+    }
+
+    .nav-icon {
+        margin-right: 10px;
+    }
+}
 
 .nav-scrollable {
     display: none;
-    background-color: var(--primary-color);
+    background-color: #4a9b5e;
 }
 
 .navbar-toggler:checked ~ .nav-scrollable {

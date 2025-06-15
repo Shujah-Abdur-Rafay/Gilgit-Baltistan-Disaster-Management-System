@@ -34,5 +34,9 @@ namespace GBDMS.Data
 
         [Column("LastUpdated")]
         public DateTime LastUpdated { get; set; }
+
+        [Column("District")]
+        [Required]
+        public string District { get; set; } = "";
     }
-} 
+}

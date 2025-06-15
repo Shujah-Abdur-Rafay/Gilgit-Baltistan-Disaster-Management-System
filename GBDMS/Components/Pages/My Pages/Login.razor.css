@@ -4,7 +4,7 @@
 }
 
 .page-header {
-    background-color: #228B22;
+    background-color: #388E65;
     color: white;
 }
 
@@ -58,15 +58,15 @@
 }
 
 .form-control:focus {
-    border-color: #228B22;
-    box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.2);
+    border-color: #388E65;
+    box-shadow: 0 0 0 3px rgba(56, 142, 101, 0.2);
     outline: none;
 }
 
 .btn {
     width: 100%;
     padding: 12px;
-    background: #228B22;
+    background: #388E65;
     color: #fff;
     border: none;
     border-radius: 6px;

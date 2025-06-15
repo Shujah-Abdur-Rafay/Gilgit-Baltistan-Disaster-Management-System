@@ -1,0 +1,406 @@
+/* Model Page Styles */
+
+/* Drag and Drop Zone */
+.drag-drop-zone {
+    border: 2px dashed #198754;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+    position: relative;
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drag-drop-zone:hover {
+    border-color: #157347;
+    background-color: #e8f5e8;
+}
+
+.drag-drop-zone-active {
+    border-color: #157347;
+    background-color: #e8f5e8;
+    transform: scale(1.02);
+}
+
+.drag-drop-content {
+    pointer-events: none;
+}
+
+.file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Manual Risk Assessment Styles */
+.parameter-section {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.parameter-section h6 {
+    border-bottom: 2px solid #198754;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.btn-check:checked + .btn-outline-success {
+    background-color: #198754;
+    border-color: #198754;
+    color: white;
+}
+
+.parameter-summary {
+    font-size: 0.9rem;
+}
+
+.parameter-summary .row > div {
+    padding: 0.25rem 0;
+}
+
+/* Risk Indicator Styles */
+.risk-indicator {
+    padding: 1rem;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    display: inline-block;
+}
+
+.metric-card {
+    padding: 1rem;
+}
+
+.metric-value {
+    font-size: 3rem !important;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.metric-label {
+    font-size: 1.1rem;
+    color: #6c757d;
+    margin-top: 0.5rem;
+}
+
+/* Progress Bar Animations */
+.progress-bar {
+    transition: width 0.6s ease;
+}
+
+/* Card Hover Effects */
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Risk Level Badges */
+.badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    white-space: nowrap;
+}
+
+.badge.w-100 {
+    white-space: normal;
+    text-align: center;
+    min-height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .drag-drop-zone {
+        padding: 1rem;
+        min-height: 120px;
+    }
+
+    .metric-value {
+        font-size: 2rem !important;
+    }
+
+    .parameter-section {
+        padding: 0.75rem;
+    }
+
+    .btn-group {
+        flex-direction: column;
+        width: 100% !important;
+    }
+
+    .btn-group .btn {
+        border-radius: 0.375rem !important;
+        margin-bottom: 0.25rem;
+        width: 100%;
+        text-align: center;
+    }
+
+    .btn-group .btn:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Make parameter input rows stack on mobile */
+    .parameter-section .row .col-md-6 {
+        margin-bottom: 1rem;
+    }
+
+    /* Adjust card spacing on mobile */
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    /* Make risk assessment cards stack properly */
+    .risk-indicator {
+        padding: 0.5rem;
+    }
+
+    .parameter-summary .row > div {
+        padding: 0.5rem 0;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 576px) {
+    /* Extra small screens */
+    .btn-group {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .btn-group .btn {
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .parameter-section h6 {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .form-label {
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .form-control, .form-select {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    /* Stack risk threshold badges */
+    .card.border-warning .row .col-md-3 {
+        margin-bottom: 0.75rem;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.75rem;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+}
+
+/* Loading Spinner */
+.spinner-border {
+    animation: spinner-border 0.75s linear infinite;
+}
+
+/* Chart Container */
+.chart-container {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.chart-container img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+/* Alert Styles */
+.alert {
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Table Styles */
+.table {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table thead th {
+    border-bottom: 2px solid #198754;
+    font-weight: 600;
+}
+
+/* Button Styles */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn-success {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.btn-success:hover {
+    background-color: #157347;
+    border-color: #146c43;
+}
+
+/* Form Controls */
+.form-control, .form-select {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+}
+
+/* Range Input */
+.form-range::-webkit-slider-thumb {
+    background-color: #198754;
+}
+
+.form-range::-moz-range-thumb {
+    background-color: #198754;
+    border: none;
+}
+
+/* Disaster Type Selection */
+.btn-group .btn-outline-success {
+    border-color: #198754;
+    color: #198754;
+    transition: all 0.2s ease;
+}
+
+.btn-group .btn-outline-success:hover {
+    background-color: #198754;
+    border-color: #198754;
+    color: white;
+}
+
+/* Responsive button group */
+@media (max-width: 768px) {
+    .btn-group {
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+
+    .btn-group .btn {
+        border-radius: 0.375rem !important;
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+
+    .btn-group .btn:last-child {
+        margin-bottom: 0;
+    }
+}
+
+/* Ensure proper spacing on mobile */
+@media (max-width: 576px) {
+    .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .row.g-3 > * {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}
+
+/* Risk Assessment Results */
+.border-success {
+    border-color: #198754 !important;
+}
+
+.border-warning {
+    border-color: #ffc107 !important;
+}
+
+.border-danger {
+    border-color: #dc3545 !important;
+}
+
+.border-info {
+    border-color: #0dcaf0 !important;
+}
+
+.border-dark {
+    border-color: #212529 !important;
+}
+
+/* Recommendations List */
+.list-unstyled li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.list-unstyled li:last-child {
+    border-bottom: none;
+}
+
+/* Animation for risk indicator */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.risk-indicator i {
+    animation: pulse 2s infinite;
+}
+
+/* Export button */
+.btn-outline-success {
+    border-color: #198754;
+    color: #198754;
+}
+
+.btn-outline-success:hover {
+    background-color: #198754;
+    border-color: #198754;
+    color: white;
+}

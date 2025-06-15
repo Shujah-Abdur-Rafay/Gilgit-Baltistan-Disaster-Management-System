@@ -113,7 +113,9 @@ h5 {
 .summary-icon {
     width: 3.5rem;
     height: 3.5rem;
-    border-radius: 50%;
+    min-width: 3.5rem;
+    min-height: 3.5rem;
+    border-radius: 50% !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -122,6 +124,8 @@ h5 {
     font-size: 1.5rem;
     box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    box-sizing: border-box;
+    flex-shrink: 0;
 }
 
 .summary-icon:hover {
@@ -582,7 +586,12 @@ body {
     .summary-icon {
         width: 3rem;
         height: 3rem;
+        min-width: 3rem;
+        min-height: 3rem;
         font-size: 1.25rem;
+        border-radius: 50% !important;
+        box-sizing: border-box;
+        flex-shrink: 0;
     }
     
     .summary-value {

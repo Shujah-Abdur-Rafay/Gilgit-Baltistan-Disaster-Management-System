@@ -1,0 +1,131 @@
+using GBDMS.Models;
+using GBDMS.Repository.IRepository;
+using GBDMS.Services;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace GBDMS.Services
+{
+    public class AlertService : IAlertService
+    {
+        private readonly IAlertRepository _alertRepository;
+        private readonly IAlertSubscriptionRepository _subscriptionRepository;
+        private readonly IEmailService _emailService;
+
+        public AlertService(
+            IAlertRepository alertRepository,
+            IAlertSubscriptionRepository subscriptionRepository,
+            IEmailService emailService)
+        {
+            _alertRepository = alertRepository;
+            _subscriptionRepository = subscriptionRepository;
+            _emailService = emailService;
+        }
+
+        public async Task<DisasterAlert> CreateAlertFromRiskAssessmentAsync(
+            string disasterType, 
+            string district, 
+            double riskScore, 
+            string riskParameters, 
+            string createdBy = "Risk Assessment Model")
+        {
+            var severity = DetermineAlertSeverity(riskScore);
+            var message = GenerateAlertMessage(disasterType, district, severity, riskScore);
+
+            var alert = new DisasterAlert
+            {
+                Type = disasterType,
+                Area = district,
+                Severity = severity,
+                Message = message,
+                RiskScore = riskScore,
+                RiskParameters = riskParameters,
+                Time = DateTime.Now,
+                CreatedAt = DateTime.Now,
+                CreatedBy = createdBy,
+                IsActive = true
+            };
+
+            await _alertRepository.AddAlertAsync(alert);
+
+            // Send notifications to subscribers
+            await SendAlertNotificationsAsync(alert);
+
+            return alert;
+        }
+
+        public async Task<List<DisasterAlert>> GetActiveAlertsAsync()
+        {
+            return await _alertRepository.GetActiveAlertsAsync();
+        }
+
+        public async Task<List<DisasterAlert>> GetAlertsByDistrictAsync(string district)
+        {
+            return await _alertRepository.GetAlertsByDistrictAsync(district);
+        }
+
+        public async Task<bool> DeactivateAlertAsync(int alertId)
+        {
+            var result = await _alertRepository.DeactivateAlertAsync(alertId);
+            return result > 0;
+        }
+
+        public async Task SendAlertNotificationsAsync(DisasterAlert alert)
+        {
+            try
+            {
+                // Get all subscribers for this district and "all districts"
+                var subscribers = await _subscriptionRepository.GetSubscriptionsByDistrictAsync(alert.Area);
+
+                // Send email to each subscriber
+                foreach (var subscription in subscribers)
+                {
+                    try
+                    {
+                        await _emailService.SendAlertNotificationAsync(
+                            subscription.Email,
+                            alert.Type,
+                            alert.Area,
+                            alert.Severity,
+                            alert.Message
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log individual email failures but continue with others
+                        Console.WriteLine($"Failed to send alert email to {subscription.Email}: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending alert notifications: {ex.Message}");
+            }
+        }
+
+        public string DetermineAlertSeverity(double riskScore)
+        {
+            return riskScore switch
+            {
+                <= 30 => "Advisory",
+                <= 60 => "Watch", 
+                <= 85 => "Warning",
+                _ => "Emergency"
+            };
+        }
+
+        public string GenerateAlertMessage(string disasterType, string district, string severity, double riskScore)
+        {
+            var baseMessage = severity switch
+            {
+                "Emergency" => $"CRITICAL: High risk {disasterType} conditions detected in {district} district. Immediate action required.",
+                "Warning" => $"WARNING: Elevated {disasterType} risk detected in {district} district. Prepare for potential emergency response.",
+                "Watch" => $"WATCH: Moderate {disasterType} risk identified in {district} district. Enhanced monitoring in effect.",
+                "Advisory" => $"ADVISORY: Low-level {disasterType} risk noted in {district} district. Continue standard monitoring.",
+                _ => $"{severity} for {disasterType} in {district} district. Take appropriate precautions."
+            };
+
+            return $"{baseMessage} Risk Score: {riskScore:F1}/100. Generated by GBDMS Risk Assessment Model at {DateTime.Now:HH:mm, dd MMM yyyy}.";
+        }
+    }
+}

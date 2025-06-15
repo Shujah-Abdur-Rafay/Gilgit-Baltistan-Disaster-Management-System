@@ -280,32 +280,35 @@
 
 @if (selectedNgo != null)
 {
-    <div class="modal fade show" style="display: block;" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+    <div class="modal fade show" style="display: block; z-index: 1050;" tabindex="-1" @onclick="@((e) => HandleModalBackdropClick(e))">
+        <div class="modal-dialog modal-lg" @onclick:stopPropagation="true">
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">
                     <h5 class="modal-title">NGO Details</h5>
-                    <button type="button" class="btn-close" @onclick="CloseNgoDetailsModal"></button>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CloseNgoDetailsModal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-8">
-                            <h4>@selectedNgo.Name</h4>
-                            <span class="badge @GetNgoTypeBadgeClass(selectedNgo.Type) mb-2">@selectedNgo.Type</span>
-                            
-                            <p class="mb-3">@selectedNgo.Description</p>
-                            
+                            <h4>@(selectedNgo.Name ?? "Unknown NGO")</h4>
+                            <span class="badge @GetNgoTypeBadgeClass(selectedNgo.Type ?? "") mb-2">@(selectedNgo.Type ?? "Unknown")</span>
+
+                            <p class="mb-3">@(selectedNgo.Description ?? "No description available.")</p>
+
                             <h6 class="text-muted">Focus Areas</h6>
                             <div class="mb-3">
-                                <span class="badge bg-success me-1">@selectedNgo.PrimaryFocusArea</span>
-                                @foreach (var area in selectedNgo.SecondaryFocusAreas)
+                                <span class="badge bg-success me-1">@(selectedNgo.PrimaryFocusArea ?? "Not specified")</span>
+                                @if (selectedNgo.SecondaryFocusAreas != null && selectedNgo.SecondaryFocusAreas.Any())
                                 {
-                                    <span class="badge bg-success-subtle text-success me-1">@area</span>
+                                    @foreach (var area in selectedNgo.SecondaryFocusAreas)
+                                    {
+                                        <span class="badge bg-success-subtle text-success me-1">@area</span>
+                                    }
                                 }
                             </div>
-                            
+
                             <h6 class="text-muted">Location</h6>
-                            <p>@selectedNgo.Location, @selectedNgo.District</p>
+                            <p>@(selectedNgo.Location ?? "Location not specified"), @(selectedNgo.District ?? "District not specified")</p>
                         </div>
                         <div class="col-md-4">
                             <div class="contact-info-card">
@@ -342,7 +345,7 @@
                 </div>
             </div>
         </div>
-        <div class="modal-backdrop fade show"></div>
+        <div class="modal-backdrop fade show" style="z-index: 1040;"></div>
     </div>
 }
 
@@ -369,7 +372,6 @@
     private bool showLocalLayer = true;
     
     // Constants
-    private readonly string spaceChar = " ";
     private readonly string underscoreChar = "_";
     
     // Focus areas for form
@@ -420,13 +422,7 @@
         }
     }
     
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await InitializeMap();
-        }
-    }
+
     
     private void InitializeSampleData()
     {
@@ -506,12 +502,12 @@
     
     private void ApplyFilters()
     {
-        filteredNgos = ngoList.Where(n => 
+        filteredNgos = ngoList.Where(n =>
             (string.IsNullOrEmpty(selectedNgoType) || n.Type == selectedNgoType) &&
             (string.IsNullOrEmpty(selectedDistrict) || n.District == selectedDistrict) &&
-            (string.IsNullOrEmpty(selectedFocusArea) || 
-             n.PrimaryFocusArea == selectedFocusArea || 
-             n.SecondaryFocusAreas.Contains(selectedFocusArea))
+            (string.IsNullOrEmpty(selectedFocusArea) ||
+             n.PrimaryFocusArea == selectedFocusArea ||
+             (n.SecondaryFocusAreas != null && n.SecondaryFocusAreas.Contains(selectedFocusArea)))
         ).ToList();
     }
     
@@ -620,12 +616,47 @@
     
     private void ViewNgoDetails(NgoEntity ngo)
     {
-        selectedNgo = ngo;
+        if (ngo != null)
+        {
+            selectedNgo = ngo;
+            // Ensure SecondaryFocusAreas is initialized
+            if (selectedNgo.SecondaryFocusAreas == null)
+            {
+                selectedNgo.SecondaryFocusAreas = new List<string>();
+            }
+        }
     }
     
     private void CloseNgoDetailsModal()
     {
         selectedNgo = null;
+        StateHasChanged();
+    }
+
+    private void HandleModalBackdropClick(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+    {
+        // Close modal when clicking on backdrop (outside the modal dialog)
+        CloseNgoDetailsModal();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeMap();
+
+            // Add keyboard event listener for Escape key
+            await JS.InvokeVoidAsync("addEscapeKeyListener", DotNetObjectReference.Create(this));
+        }
+    }
+
+    [JSInvokable]
+    public void HandleEscapeKey()
+    {
+        if (selectedNgo != null)
+        {
+            CloseNgoDetailsModal();
+        }
     }
     
     private async Task DeleteNgo(NgoEntity ngo)

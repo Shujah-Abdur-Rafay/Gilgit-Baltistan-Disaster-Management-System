@@ -13,9 +13,14 @@
 @using Microsoft.Extensions.Logging
 @using Microsoft.JSInterop
 @using GBDMS.Services.ModelService
+@using GBDMS.Services
+@using GBDMS.Models
 @inject IJSRuntime JS
 @inject PythonModelExecutor ModelExecutor
 @inject ILogger<Model> Logger
+@inject IAlertService _alertService
+
+<link href="~/css/pages/model.css" rel="stylesheet" />
 
 <div class="container-fluid">
     <div class="page-header mb-4">
@@ -109,13 +114,153 @@
                 </div>
             </div>
 
+            <!-- Manual Risk Assessment -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calculator me-2"></i>Manual Risk Assessment
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Disaster Type Selection -->
+                    <div class="mb-3">
+                        <label class="form-label">Disaster Type</label>
+                        <div class="btn-group w-100 d-flex flex-wrap" role="group">
+                            <input type="radio" class="btn-check" name="disasterType" id="earthquake" value="Earthquake" @onchange="@(() => selectedDisasterType = "Earthquake")" checked="@(selectedDisasterType == "Earthquake")">
+                            <label class="btn btn-outline-success flex-fill" for="earthquake">Earthquake</label>
+
+                            <input type="radio" class="btn-check" name="disasterType" id="flood" value="Flood" @onchange="@(() => selectedDisasterType = "Flood")">
+                            <label class="btn btn-outline-success flex-fill" for="flood">Flood</label>
+
+                            <input type="radio" class="btn-check" name="disasterType" id="landslide" value="Landslide" @onchange="@(() => selectedDisasterType = "Landslide")">
+                            <label class="btn btn-outline-success flex-fill" for="landslide">Landslide</label>
+
+                            <input type="radio" class="btn-check" name="disasterType" id="glof" value="GLOF" @onchange="@(() => selectedDisasterType = "GLOF")">
+                            <label class="btn btn-outline-success flex-fill" for="glof">GLOF</label>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Parameter Inputs -->
+                    @if (selectedDisasterType == "Earthquake")
+                    {
+                        <div class="parameter-section">
+                            <h6 class="text-success mb-3">Earthquake Parameters</h6>
+                            <div class="row g-3">
+                                <div class="col-sm-6 col-12">
+                                    <label class="form-label">Magnitude (Mw)</label>
+                                    <input type="number" class="form-control" @bind="earthquakeParams.Magnitude" min="1" max="10" step="0.1" placeholder="e.g., 6.5">
+                                </div>
+                                <div class="col-sm-6 col-12">
+                                    <label class="form-label">Focal Depth (km)</label>
+                                    <input type="number" class="form-control" @bind="earthquakeParams.Depth" min="0" max="700" placeholder="e.g., 15">
+                                </div>
+                                <div class="col-sm-6 col-12">
+                                    <label class="form-label">Distance to Mapped Fault (km)</label>
+                                    <input type="number" class="form-control" @bind="earthquakeParams.DistanceFromFault" min="0" max="500" placeholder="e.g., 5">
+                                </div>
+                                <div class="col-sm-6 col-12">
+                                    <label class="form-label">Population Density (pers./km²)</label>
+                                    <input type="number" class="form-control" @bind="earthquakeParams.PopulationDensity" min="0" placeholder="e.g., 150">
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else if (selectedDisasterType == "Flood")
+                    {
+                        <div class="parameter-section">
+                            <h6 class="text-success mb-3">Flood Parameters</h6>
+                            <div class="row g-3">
+                                <div class="col-sm-6 col-12">
+                                    <label class="form-label">24-h Rainfall (mm)</label>
+                                    <input type="number" class="form-control" @bind="floodParams.Rainfall" min="0" max="1000" placeholder="e.g., 150">
+                                </div>
+                                <div class="col-sm-6 col-12">
+                                    <label class="form-label">River Level above Seasonal Mean (m)</label>
+                                    <input type="number" class="form-control" @bind="floodParams.RiverLevel" min="0" max="20" step="0.1" placeholder="e.g., 2.5">
+                                </div>
+                                <div class="col-sm-6 col-12">
+                                    <label class="form-label">Valley-floor Elevation (masl)</label>
+                                    <input type="number" class="form-control" @bind="floodParams.Elevation" min="0" max="8000" placeholder="e.g., 1500">
+                                </div>
+                                <div class="col-sm-6 col-12">
+                                    <label class="form-label">Drainage Capacity (% of design)</label>
+                                    <input type="number" class="form-control" @bind="floodParams.DrainageCapacity" min="0" max="100" placeholder="e.g., 75">
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else if (selectedDisasterType == "Landslide")
+                    {
+                        <div class="parameter-section">
+                            <h6 class="text-success mb-3">Landslide Parameters</h6>
+                            <div class="row g-3">
+                                <div class="col-sm-6 col-12">
+                                    <label class="form-label">Slope Angle (°)</label>
+                                    <input type="number" class="form-control" @bind="landslideParams.SlopeAngle" min="0" max="90" placeholder="e.g., 35">
+                                </div>
+                                <div class="col-sm-6 col-12">
+                                    <label class="form-label">Soil Moisture (% vol.)</label>
+                                    <input type="number" class="form-control" @bind="landslideParams.SoilMoisture" min="0" max="100" placeholder="e.g., 80">
+                                </div>
+                                <div class="col-sm-6 col-12">
+                                    <label class="form-label">Vegetation Cover (% canopy/NDVI)</label>
+                                    <input type="number" class="form-control" @bind="landslideParams.VegetationCover" min="0" max="100" placeholder="e.g., 40">
+                                </div>
+                                <div class="col-sm-6 col-12">
+                                    <label class="form-label">Recent Rainfall (mm in 7 days)</label>
+                                    <input type="number" class="form-control" @bind="landslideParams.RecentRainfall" min="0" max="500" placeholder="e.g., 100">
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else if (selectedDisasterType == "GLOF")
+                    {
+                        <div class="parameter-section">
+                            <h6 class="text-success mb-3">GLOF Parameters</h6>
+                            <div class="row g-3">
+                                <div class="col-sm-6 col-12">
+                                    <label class="form-label">Lake Volume (10⁶ m³)</label>
+                                    <input type="number" class="form-control" @bind="glofParams.LakeVolume" min="0" max="1000" step="0.1" placeholder="e.g., 15.5">
+                                </div>
+                                <div class="col-sm-6 col-12">
+                                    <label class="form-label">Moraine/Dam Height (m)</label>
+                                    <input type="number" class="form-control" @bind="glofParams.DamHeight" min="0" max="200" placeholder="e.g., 50">
+                                </div>
+                                <div class="col-sm-6 col-12">
+                                    <label class="form-label">Mean Daily Temp. at Lake (°C)</label>
+                                    <input type="number" class="form-control" @bind="glofParams.Temperature" min="-20" max="40" step="0.1" placeholder="e.g., 15.5">
+                                </div>
+                                <div class="col-sm-6 col-12">
+                                    <label class="form-label">Distance to Settlement (km)</label>
+                                    <input type="number" class="form-control" @bind="glofParams.DistanceToSettlement" min="0" max="100" placeholder="e.g., 10">
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Predict Risk Button -->
+                    <button class="btn btn-success w-100 mt-3" @onclick="PredictRisk" disabled="@isPredicting">
+                        @if (isPredicting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            <span>Analyzing...</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-lightning me-2"></i>
+                            <span>Predict Risk</span>
+                        }
+                    </button>
+                </div>
+            </div>
+
             <!-- Export Options -->
             <div class="card">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0">Export Results</h5>
                 </div>
                 <div class="card-body">
-                    <button class="btn btn-outline-success w-100 mb-2" @onclick="ExportPDF" disabled="@(!analysisComplete)">
+                    <button class="btn btn-outline-success w-100 mb-2" @onclick="ExportPDF" disabled="@(!analysisComplete && !riskPredictionComplete)">
                         <i class="bi bi-file-pdf"></i> Export as PDF
                     </button>
                 </div>
@@ -208,12 +353,211 @@
                 </div>
             }
 
-            @if (analysisComplete)
+            @if (riskPredictionComplete)
             {
-                <!-- Results Section -->
+                <!-- Risk Prediction Results -->
                 <div class="card mb-4">
                     <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Analysis Results</h5>
+                        <h5 class="mb-0">
+                            <i class="bi bi-shield-exclamation me-2"></i>Risk Assessment Results
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <!-- Risk Level Card -->
+                            <div class="col-lg-6 col-md-12 mb-4">
+                                <div class="card border-@GetRiskColorClass() h-100">
+                                    <div class="card-body text-center">
+                                        <div class="risk-indicator mb-3">
+                                            <i class="bi bi-@GetRiskIcon() fa-3x text-@GetRiskColorClass()"></i>
+                                        </div>
+                                        <h4 class="text-@GetRiskColorClass()">@GetRiskLevelText()</h4>
+                                        <p class="text-muted">@GetRiskDescription()</p>
+                                        <div class="progress mb-3">
+                                            <div class="progress-bar bg-@GetRiskColorClass()" role="progressbar" style="width: @riskScore%">
+                                                @riskScore.ToString("0")%
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">Risk Score: @riskScore.ToString("0.0")/100</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Input Parameters Summary -->
+                            <div class="col-lg-6 col-md-12 mb-4">
+                                <div class="card border-info h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-info">Input Parameters</h6>
+                                        <div class="parameter-summary">
+                                            <strong>Disaster Type:</strong> @selectedDisasterType
+                                            <hr>
+                                            @if (selectedDisasterType == "Earthquake")
+                                            {
+                                                <div class="row">
+                                                    <div class="col-6"><small>Magnitude:</small></div>
+                                                    <div class="col-6"><strong>@earthquakeParams.Magnitude</strong></div>
+                                                    <div class="col-6"><small>Depth:</small></div>
+                                                    <div class="col-6"><strong>@earthquakeParams.Depth km</strong></div>
+                                                    <div class="col-6"><small>Distance from Fault:</small></div>
+                                                    <div class="col-6"><strong>@earthquakeParams.DistanceFromFault km</strong></div>
+                                                    <div class="col-6"><small>Population Density:</small></div>
+                                                    <div class="col-6"><strong>@earthquakeParams.PopulationDensity/km²</strong></div>
+                                                </div>
+                                            }
+                                            else if (selectedDisasterType == "Flood")
+                                            {
+                                                <div class="row">
+                                                    <div class="col-6"><small>Rainfall:</small></div>
+                                                    <div class="col-6"><strong>@floodParams.Rainfall mm</strong></div>
+                                                    <div class="col-6"><small>River Level:</small></div>
+                                                    <div class="col-6"><strong>+@floodParams.RiverLevel m</strong></div>
+                                                    <div class="col-6"><small>Elevation:</small></div>
+                                                    <div class="col-6"><strong>@floodParams.Elevation m</strong></div>
+                                                    <div class="col-6"><small>Drainage:</small></div>
+                                                    <div class="col-6"><strong>@floodParams.DrainageCapacity%</strong></div>
+                                                </div>
+                                            }
+                                            else if (selectedDisasterType == "Landslide")
+                                            {
+                                                <div class="row">
+                                                    <div class="col-6"><small>Slope Angle:</small></div>
+                                                    <div class="col-6"><strong>@landslideParams.SlopeAngle°</strong></div>
+                                                    <div class="col-6"><small>Soil Moisture:</small></div>
+                                                    <div class="col-6"><strong>@landslideParams.SoilMoisture%</strong></div>
+                                                    <div class="col-6"><small>Vegetation:</small></div>
+                                                    <div class="col-6"><strong>@landslideParams.VegetationCover%</strong></div>
+                                                    <div class="col-6"><small>Recent Rainfall:</small></div>
+                                                    <div class="col-6"><strong>@landslideParams.RecentRainfall mm</strong></div>
+                                                </div>
+                                            }
+                                            else if (selectedDisasterType == "GLOF")
+                                            {
+                                                <div class="row">
+                                                    <div class="col-6"><small>Lake Volume:</small></div>
+                                                    <div class="col-6"><strong>@glofParams.LakeVolume M m³</strong></div>
+                                                    <div class="col-6"><small>Dam Height:</small></div>
+                                                    <div class="col-6"><strong>@glofParams.DamHeight m</strong></div>
+                                                    <div class="col-6"><small>Temperature:</small></div>
+                                                    <div class="col-6"><strong>@glofParams.Temperature°C</strong></div>
+                                                    <div class="col-6"><small>Distance to Settlement:</small></div>
+                                                    <div class="col-6"><strong>@glofParams.DistanceToSettlement km</strong></div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Risk Thresholds -->
+                        <div class="card border-warning mb-4">
+                            <div class="card-body">
+                                <h6 class="card-title text-warning">Scientific Risk Assessment Thresholds</h6>
+                                <div class="row g-3 text-center">
+                                    <div class="col-lg-3 col-md-6 col-sm-6 col-12">
+                                        <span class="badge bg-success w-100">Low: 0-25</span>
+                                        <p class="small text-muted mt-1">Normal conditions. Standard monitoring protocols.</p>
+                                    </div>
+                                    <div class="col-lg-3 col-md-6 col-sm-6 col-12">
+                                        <span class="badge bg-warning w-100">Medium: 26-50</span>
+                                        <p class="small text-muted mt-1">Elevated conditions. Enhanced monitoring required.</p>
+                                    </div>
+                                    <div class="col-lg-3 col-md-6 col-sm-6 col-12">
+                                        <span class="badge bg-danger w-100">High: 51-75</span>
+                                        <p class="small text-muted mt-1">Dangerous conditions. Prepare emergency response.</p>
+                                    </div>
+                                    <div class="col-lg-3 col-md-6 col-sm-6 col-12">
+                                        <span class="badge bg-dark w-100">Critical: 76-100</span>
+                                        <p class="small text-muted mt-1">Extreme conditions. Immediate action required.</p>
+                                    </div>
+                                </div>
+                                <div class="alert alert-info mt-3">
+                                    <small><strong>Note:</strong> Risk scores are calculated based on scientific parameter thresholds established for Gilgit-Baltistan region. Each parameter is weighted equally and scored according to established hazard classification standards.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recommendations -->
+                        <div class="card border-info mb-4">
+                            <div class="card-body">
+                                <h6 class="card-title text-info">Recommendations</h6>
+                                <ul class="list-unstyled">
+                                    @foreach (var recommendation in GetRecommendations())
+                                    {
+                                        <li class="mb-2">
+                                            <i class="bi bi-check-circle text-success me-2"></i>
+                                            @recommendation
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Alert Generation Section -->
+                        @if (riskScore > 25) // Only show for Medium, High, and Critical risk
+                        {
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-bell me-2"></i>Generate Disaster Alert
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-@GetRiskColorClass() mb-3">
+                                        <strong>Risk Level: @GetRiskLevelText()</strong><br>
+                                        Based on the risk assessment, it is recommended to generate an alert for the affected district.
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label text-success"><strong>Select District for Alert</strong></label>
+                                        <select class="form-select border-success" @bind="selectedAlertDistrict">
+                                            <option value="">-- Select District --</option>
+                                            <option value="Gilgit">Gilgit</option>
+                                            <option value="Skardu">Skardu</option>
+                                            <option value="Hunza">Hunza</option>
+                                            <option value="Astore">Astore</option>
+                                            <option value="Ghanche">Ghanche</option>
+                                            <option value="Ghizer">Ghizer</option>
+                                            <option value="Nagar">Nagar</option>
+                                            <option value="Shigar">Shigar</option>
+                                        </select>
+                                    </div>
+
+                                    <button class="btn btn-success w-100"
+                                            @onclick="GenerateAlert"
+                                            disabled="@(string.IsNullOrEmpty(selectedAlertDistrict) || isGeneratingAlert)">
+                                        @if (isGeneratingAlert)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                            <span>Generating Alert...</span>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-exclamation-triangle me-2"></i>
+                                            <span>Generate Alert & Send Notifications</span>
+                                        }
+                                    </button>
+
+                                    @if (!string.IsNullOrEmpty(alertGenerationMessage))
+                                    {
+                                        <div class="alert @(alertGenerationSuccess ? "alert-success" : "alert-danger") mt-3" role="alert">
+                                            <i class="bi @(alertGenerationSuccess ? "bi-check-circle" : "bi-exclamation-triangle") me-2"></i>
+                                            @alertGenerationMessage
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (analysisComplete)
+            {
+                <!-- Dataset Analysis Results Section -->
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Dataset Analysis Results</h5>
                     </div>
                     <div class="card-body">
                         <div class="row mb-4">
@@ -339,6 +683,24 @@
     private List<ClassificationReportItem> classificationReport = new List<ClassificationReportItem>();
     private string confusionMatrixUrl = "";
 
+    // Manual risk assessment properties
+    private string selectedDisasterType = "Earthquake";
+    private bool isPredicting = false;
+    private bool riskPredictionComplete = false;
+    private double riskScore = 0;
+
+    // Alert generation properties
+    private string selectedAlertDistrict = "";
+    private bool isGeneratingAlert = false;
+    private string alertGenerationMessage = "";
+    private bool alertGenerationSuccess = false;
+
+    // Parameter classes for different disaster types
+    private EarthquakeParameters earthquakeParams = new EarthquakeParameters();
+    private FloodParameters floodParams = new FloodParameters();
+    private LandslideParameters landslideParams = new LandslideParameters();
+    private GLOFParameters glofParams = new GLOFParameters();
+
     private class LogEntry
     {
         public DateTime Timestamp { get; set; }
@@ -354,6 +716,39 @@
         public int Support { get; set; }
     }
 
+    // Parameter classes for manual risk assessment
+    private class EarthquakeParameters
+    {
+        public double Magnitude { get; set; } = 6.0;
+        public double Depth { get; set; } = 10;
+        public double DistanceFromFault { get; set; } = 5;
+        public double PopulationDensity { get; set; } = 100;
+    }
+
+    private class FloodParameters
+    {
+        public double Rainfall { get; set; } = 100;
+        public double RiverLevel { get; set; } = 2.0;
+        public double Elevation { get; set; } = 1500;
+        public double DrainageCapacity { get; set; } = 75;
+    }
+
+    private class LandslideParameters
+    {
+        public double SlopeAngle { get; set; } = 30;
+        public double SoilMoisture { get; set; } = 60;
+        public double VegetationCover { get; set; } = 50;
+        public double RecentRainfall { get; set; } = 80;
+    }
+
+    private class GLOFParameters
+    {
+        public double LakeVolume { get; set; } = 10;
+        public double DamHeight { get; set; } = 30;
+        public double Temperature { get; set; } = 15;
+        public double DistanceToSettlement { get; set; } = 15;
+    }
+
     // Log message handling
     private void AddLog(string message)
     {
@@ -363,6 +758,374 @@
                 Message = message
             });
         StateHasChanged();
+    }
+
+    // Manual risk prediction
+    private async Task PredictRisk()
+    {
+        try
+        {
+            isPredicting = true;
+            riskPredictionComplete = false;
+            errorMessage = "";
+
+            AddLog($"Analyzing {selectedDisasterType} risk...");
+
+            // Simulate analysis delay
+            await Task.Delay(1500);
+
+            // Calculate risk score based on disaster type and parameters
+            riskScore = CalculateRiskScore();
+
+            AddLog($"Risk assessment complete. Risk score: {riskScore:F1}");
+
+            riskPredictionComplete = true;
+            isPredicting = false;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error predicting risk: " + ex.Message;
+            Logger.LogError(ex, "Error during risk prediction");
+            isPredicting = false;
+        }
+    }
+
+    // Calculate risk score based on disaster type and parameters using scientific thresholds
+    private double CalculateRiskScore()
+    {
+        double totalScore = 0;
+
+        switch (selectedDisasterType)
+        {
+            case "Earthquake":
+                // Magnitude (Mw) scoring: Normal <4.0, Medium 4.0-4.9, High 5.0-5.9, Extreme ≥6.0
+                double magnitudeScore;
+                if (earthquakeParams.Magnitude < 4.0)
+                    magnitudeScore = 10;    // Normal - Low risk
+                else if (earthquakeParams.Magnitude >= 4.0 && earthquakeParams.Magnitude < 5.0)
+                    magnitudeScore = 40;    // Medium risk
+                else if (earthquakeParams.Magnitude >= 5.0 && earthquakeParams.Magnitude < 6.0)
+                    magnitudeScore = 70;    // High risk
+                else
+                    magnitudeScore = 95;    // Extreme - Critical risk
+
+                // Focal Depth (km) scoring: Normal >300, Medium 70-300, High 30-70, Extreme <30
+                double depthScore;
+                if (earthquakeParams.Depth > 300)
+                    depthScore = 10;    // Deep - Normal
+                else if (earthquakeParams.Depth >= 70 && earthquakeParams.Depth <= 300)
+                    depthScore = 40;    // Intermediate - Medium
+                else if (earthquakeParams.Depth >= 30 && earthquakeParams.Depth < 70)
+                    depthScore = 70;    // Shallow - High
+                else
+                    depthScore = 95;    // Very shallow - Extreme
+
+                // Distance to Fault (km) scoring: Normal >50, Medium 20-50, High 10-20, Extreme <10
+                double faultDistanceScore;
+                if (earthquakeParams.DistanceFromFault > 50)
+                    faultDistanceScore = 10;     // Far - Normal
+                else if (earthquakeParams.DistanceFromFault >= 20 && earthquakeParams.DistanceFromFault <= 50)
+                    faultDistanceScore = 40;     // Medium distance
+                else if (earthquakeParams.DistanceFromFault >= 10 && earthquakeParams.DistanceFromFault < 20)
+                    faultDistanceScore = 70;     // Close - High
+                else
+                    faultDistanceScore = 95;     // Near-fault - Extreme
+
+                // Population Density (per km²) scoring: Normal <50, Medium 50-200, High 200-1000, Extreme >1000
+                double populationScore;
+                if (earthquakeParams.PopulationDensity < 50)
+                    populationScore = 10;     // Low density - Normal
+                else if (earthquakeParams.PopulationDensity >= 50 && earthquakeParams.PopulationDensity <= 200)
+                    populationScore = 40;     // Medium density
+                else if (earthquakeParams.PopulationDensity >= 200 && earthquakeParams.PopulationDensity <= 1000)
+                    populationScore = 70;     // High density
+                else
+                    populationScore = 95;     // City cores - Extreme
+
+                totalScore = (magnitudeScore + depthScore + faultDistanceScore + populationScore) / 4;
+                break;
+
+            case "Flood":
+                // 24-h Rainfall (mm) scoring: Normal <25, Medium 25-50, High 50-100, Extreme >100
+                double rainfallScore;
+                if (floodParams.Rainfall < 25)
+                    rainfallScore = 10;     // Normal
+                else if (floodParams.Rainfall >= 25 && floodParams.Rainfall <= 50)
+                    rainfallScore = 40;     // Medium
+                else if (floodParams.Rainfall >= 50 && floodParams.Rainfall <= 100)
+                    rainfallScore = 70;     // High
+                else
+                    rainfallScore = 95;     // Extreme
+
+                // River Level above Seasonal Mean (m) scoring: Normal <1, Medium 1-2, High 2-3, Extreme >3
+                double riverLevelScore;
+                if (floodParams.RiverLevel < 1)
+                    riverLevelScore = 10;      // Normal
+                else if (floodParams.RiverLevel >= 1 && floodParams.RiverLevel <= 2)
+                    riverLevelScore = 40;      // Medium
+                else if (floodParams.RiverLevel >= 2 && floodParams.RiverLevel <= 3)
+                    riverLevelScore = 70;      // High
+                else
+                    riverLevelScore = 95;      // Extreme
+
+                // Valley-floor Elevation (masl) scoring: Normal >3000, Medium 2500-3000, High 2000-2500, Extreme <2000
+                double elevationScore;
+                if (floodParams.Elevation > 3000)
+                    elevationScore = 10;   // High elevation - Normal
+                else if (floodParams.Elevation >= 2500 && floodParams.Elevation <= 3000)
+                    elevationScore = 40;   // Medium elevation
+                else if (floodParams.Elevation >= 2000 && floodParams.Elevation <= 2500)
+                    elevationScore = 70;   // Low elevation - High
+                else
+                    elevationScore = 95;   // Very low - Extreme
+
+                // Drainage Capacity (% of design) scoring: Normal >80%, Medium 60-80%, High 40-60%, Extreme <40%
+                double drainageScore;
+                if (floodParams.DrainageCapacity > 80)
+                    drainageScore = 10;     // Good drainage - Normal
+                else if (floodParams.DrainageCapacity >= 60 && floodParams.DrainageCapacity <= 80)
+                    drainageScore = 40;     // Medium drainage
+                else if (floodParams.DrainageCapacity >= 40 && floodParams.DrainageCapacity <= 60)
+                    drainageScore = 70;     // Poor drainage - High
+                else
+                    drainageScore = 95;     // Very poor - Extreme
+
+                totalScore = (rainfallScore + riverLevelScore + elevationScore + drainageScore) / 4;
+                break;
+
+            case "Landslide":
+                // Slope Angle (°) scoring: Normal <15, Medium 15-30, High 30-45, Extreme >45
+                double slopeScore;
+                if (landslideParams.SlopeAngle < 15)
+                    slopeScore = 10;     // Gentle slope - Normal
+                else if (landslideParams.SlopeAngle >= 15 && landslideParams.SlopeAngle <= 30)
+                    slopeScore = 40;     // Medium slope
+                else if (landslideParams.SlopeAngle >= 30 && landslideParams.SlopeAngle <= 45)
+                    slopeScore = 70;     // Steep slope - High
+                else
+                    slopeScore = 95;     // Very steep - Extreme
+
+                // Soil Moisture (% vol.) scoring: Normal <20, Medium 20-30, High 30-40, Extreme >40
+                double moistureScore;
+                if (landslideParams.SoilMoisture < 20)
+                    moistureScore = 10;     // Low moisture - Normal
+                else if (landslideParams.SoilMoisture >= 20 && landslideParams.SoilMoisture <= 30)
+                    moistureScore = 40;     // Medium moisture
+                else if (landslideParams.SoilMoisture >= 30 && landslideParams.SoilMoisture <= 40)
+                    moistureScore = 70;     // High moisture
+                else
+                    moistureScore = 95;     // Near saturation - Extreme
+
+                // Vegetation Cover (% canopy/NDVI) scoring: Normal >70, Medium 40-70, High 10-40, Extreme <10
+                double vegetationScore;
+                if (landslideParams.VegetationCover > 70)
+                    vegetationScore = 10;     // Dense vegetation - Normal
+                else if (landslideParams.VegetationCover >= 40 && landslideParams.VegetationCover <= 70)
+                    vegetationScore = 40;     // Medium vegetation
+                else if (landslideParams.VegetationCover >= 10 && landslideParams.VegetationCover <= 40)
+                    vegetationScore = 70;     // Sparse vegetation - High
+                else
+                    vegetationScore = 95;     // Bare/denuded - Extreme
+
+                // Recent Rainfall (mm in 7 days) scoring: Normal <20, Medium 20-50, High 50-100, Extreme >100
+                double recentRainScore;
+                if (landslideParams.RecentRainfall < 20)
+                    recentRainScore = 10;     // Low recent rainfall - Normal
+                else if (landslideParams.RecentRainfall >= 20 && landslideParams.RecentRainfall <= 50)
+                    recentRainScore = 40;     // Medium recent rainfall
+                else if (landslideParams.RecentRainfall >= 50 && landslideParams.RecentRainfall <= 100)
+                    recentRainScore = 70;     // High recent rainfall
+                else
+                    recentRainScore = 95;     // Very high - Extreme
+
+                totalScore = (slopeScore + moistureScore + vegetationScore + recentRainScore) / 4;
+                break;
+
+            case "GLOF":
+                // Lake Volume (10⁶ m³) scoring: Normal <5, Medium 5-10, High 10-20, Extreme >20
+                double volumeScore;
+                if (glofParams.LakeVolume < 5)
+                    volumeScore = 10;      // Small lake - Normal
+                else if (glofParams.LakeVolume >= 5 && glofParams.LakeVolume <= 10)
+                    volumeScore = 40;      // Medium lake
+                else if (glofParams.LakeVolume >= 10 && glofParams.LakeVolume <= 20)
+                    volumeScore = 70;      // Large lake - High
+                else
+                    volumeScore = 95;      // Very large - Extreme
+
+                // Moraine/Dam Height (m) scoring: Normal <20, Medium 20-50, High 50-100, Extreme >100
+                double damHeightScore;
+                if (glofParams.DamHeight < 20)
+                    damHeightScore = 10;     // Low dam - Normal
+                else if (glofParams.DamHeight >= 20 && glofParams.DamHeight <= 50)
+                    damHeightScore = 40;     // Medium dam
+                else if (glofParams.DamHeight >= 50 && glofParams.DamHeight <= 100)
+                    damHeightScore = 70;     // High dam
+                else
+                    damHeightScore = 95;     // Very high dam - Extreme
+
+                // Mean Daily Temp. at Lake (°C) scoring: Normal <10, Medium 10-15, High 15-20, Extreme >20
+                double temperatureScore;
+                if (glofParams.Temperature < 10)
+                    temperatureScore = 10;     // Cold - Normal
+                else if (glofParams.Temperature >= 10 && glofParams.Temperature <= 15)
+                    temperatureScore = 40;     // Cool - Medium
+                else if (glofParams.Temperature >= 15 && glofParams.Temperature <= 20)
+                    temperatureScore = 70;     // Warm - High
+                else
+                    temperatureScore = 95;     // Heat-wave - Extreme
+
+                // Distance to Settlement (km) scoring: Normal >10, Medium 5-10, High 2-5, Extreme <2
+                double settlementDistanceScore;
+                if (glofParams.DistanceToSettlement > 10)
+                    settlementDistanceScore = 10;     // Far from settlements - Normal
+                else if (glofParams.DistanceToSettlement >= 5 && glofParams.DistanceToSettlement <= 10)
+                    settlementDistanceScore = 40;     // Medium distance
+                else if (glofParams.DistanceToSettlement >= 2 && glofParams.DistanceToSettlement <= 5)
+                    settlementDistanceScore = 70;     // Close to settlements - High
+                else
+                    settlementDistanceScore = 95;     // Very close - Extreme
+
+                totalScore = (volumeScore + damHeightScore + temperatureScore + settlementDistanceScore) / 4;
+                break;
+        }
+
+        // Ensure score is within 0-100 range
+        return Math.Min(100, Math.Max(0, totalScore));
+    }
+
+    // Helper methods for risk display based on scientific thresholds
+    private string GetRiskLevelText()
+    {
+        if (riskScore <= 25) return "LOW RISK";
+        if (riskScore <= 50) return "MEDIUM RISK";
+        if (riskScore <= 75) return "HIGH RISK";
+        return "CRITICAL RISK";
+    }
+
+    private string GetRiskColorClass()
+    {
+        if (riskScore <= 25) return "success";
+        if (riskScore <= 50) return "warning";
+        if (riskScore <= 75) return "danger";
+        return "dark";
+    }
+
+    private string GetRiskIcon()
+    {
+        if (riskScore <= 25) return "shield-check";
+        if (riskScore <= 50) return "exclamation-triangle";
+        if (riskScore <= 75) return "exclamation-diamond";
+        return "exclamation-octagon";
+    }
+
+    private string GetRiskDescription()
+    {
+        if (riskScore <= 25) return "Normal conditions detected. Parameters within safe thresholds. Continue standard monitoring procedures.";
+        if (riskScore <= 50) return "Elevated conditions detected. Some parameters exceed normal thresholds. Enhanced monitoring recommended.";
+        if (riskScore <= 75) return "Dangerous conditions detected. Multiple parameters in high-risk ranges. Prepare emergency response measures.";
+        return "Extreme conditions detected. Critical parameter thresholds exceeded. Immediate action and evacuation may be required.";
+    }
+
+    private List<string> GetRecommendations()
+    {
+        var recommendations = new List<string>();
+
+        if (riskScore <= 25) // Low Risk - Normal Conditions
+        {
+            recommendations.Add("Continue routine monitoring and data collection");
+            recommendations.Add("Maintain early warning systems in operational status");
+            recommendations.Add("Conduct regular community awareness programs");
+            recommendations.Add("Review and update hazard maps and risk assessments");
+            recommendations.Add("Ensure emergency equipment is maintained and accessible");
+        }
+        else if (riskScore <= 50) // Medium Risk - Elevated Conditions
+        {
+            recommendations.Add("Increase monitoring frequency and data analysis");
+            recommendations.Add("Alert relevant authorities and emergency services");
+            recommendations.Add("Review and update evacuation plans");
+            recommendations.Add("Inform local communities about elevated risk conditions");
+            recommendations.Add("Prepare emergency response teams for potential activation");
+            recommendations.Add("Check and test communication systems");
+        }
+        else if (riskScore <= 75) // High Risk - Dangerous Conditions
+        {
+            recommendations.Add("Activate emergency response protocols");
+            recommendations.Add("Deploy additional monitoring equipment");
+            recommendations.Add("Prepare evacuation routes and emergency shelters");
+            recommendations.Add("Issue public warnings and safety advisories");
+            recommendations.Add("Coordinate with disaster management authorities");
+            recommendations.Add("Establish 24/7 monitoring and communication");
+            recommendations.Add("Pre-position emergency resources and personnel");
+        }
+        else // Critical Risk - Extreme Conditions
+        {
+            recommendations.Add("IMMEDIATE: Activate highest level emergency protocols");
+            recommendations.Add("IMMEDIATE: Consider evacuation of high-risk areas");
+            recommendations.Add("IMMEDIATE: Deploy all available monitoring resources");
+            recommendations.Add("IMMEDIATE: Coordinate with all emergency services");
+            recommendations.Add("IMMEDIATE: Issue urgent public safety warnings");
+            recommendations.Add("IMMEDIATE: Establish emergency command center");
+            recommendations.Add("IMMEDIATE: Implement evacuation procedures if necessary");
+            recommendations.Add("IMMEDIATE: Mobilize all available emergency response resources");
+        }
+
+        return recommendations;
+    }
+
+    // Generate alert based on risk assessment
+    private async Task GenerateAlert()
+    {
+        try
+        {
+            isGeneratingAlert = true;
+            alertGenerationMessage = "";
+            alertGenerationSuccess = false;
+            StateHasChanged();
+
+            AddLog($"Generating alert for {selectedDisasterType} in {selectedAlertDistrict}...");
+
+            // Create risk parameters JSON
+            var riskParameters = selectedDisasterType switch
+            {
+                "Earthquake" => JsonSerializer.Serialize(earthquakeParams),
+                "Flood" => JsonSerializer.Serialize(floodParams),
+                "Landslide" => JsonSerializer.Serialize(landslideParams),
+                "GLOF" => JsonSerializer.Serialize(glofParams),
+                _ => "{}"
+            };
+
+            // Create alert using the alert service
+            var alert = await _alertService.CreateAlertFromRiskAssessmentAsync(
+                selectedDisasterType,
+                selectedAlertDistrict,
+                riskScore,
+                riskParameters,
+                "Risk Assessment Model"
+            );
+
+            AddLog($"Alert generated successfully with ID: {alert.Id}");
+            AddLog($"Email notifications sent to subscribers in {selectedAlertDistrict}");
+
+            alertGenerationMessage = $"Alert successfully generated for {selectedDisasterType} in {selectedAlertDistrict} district. " +
+                                   $"Severity: {alert.Severity}. Email notifications have been sent to all subscribers.";
+            alertGenerationSuccess = true;
+
+            // Clear the district selection
+            selectedAlertDistrict = "";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error generating alert");
+            alertGenerationMessage = $"Failed to generate alert: {ex.Message}";
+            alertGenerationSuccess = false;
+            AddLog($"Error generating alert: {ex.Message}");
+        }
+        finally
+        {
+            isGeneratingAlert = false;
+            StateHasChanged();
+        }
     }
 
     // File upload handler

@@ -107,4 +107,23 @@ window.toggleNgoLayerVisibility = function(layerType, isVisible) {
             ngoMap.removeLayer(ngoLayers[layerType]);
         }
     }
-}; 
+};
+
+// Escape key handler for modal
+let ngoComponentRef = null;
+
+window.addEscapeKeyListener = function(componentRef) {
+    ngoComponentRef = componentRef;
+
+    // Remove existing listener if any
+    document.removeEventListener('keydown', handleEscapeKey);
+
+    // Add new listener
+    document.addEventListener('keydown', handleEscapeKey);
+};
+
+function handleEscapeKey(event) {
+    if (event.key === 'Escape' && ngoComponentRef) {
+        ngoComponentRef.invokeMethodAsync('HandleEscapeKey');
+    }
+}

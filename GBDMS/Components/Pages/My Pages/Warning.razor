@@ -2,6 +2,12 @@
 @inject IJSRuntime JS
 @inject IUserRepository _userRepository
 @inject NavigationManager Navigation
+@inject IEmailService _emailService
+@inject IAlertSubscriptionRepository _subscriptionRepository
+@inject IAlertService _alertService
+@using GBDMS.Services
+@using GBDMS.Repository.IRepository
+@using GBDMS.Models
 
 <div class="container-fluid">
     <h2 class="page-heading mb-4">Disaster Warning System</h2>
@@ -76,9 +82,26 @@
                         <label class="form-label">Email for Notifications</label>
                         <input type="email" class="form-control" placeholder="Email Address" @bind="contactEmail">
                     </div>
-                    <button class="btn btn-success w-100" @onclick="SubscribeToAlerts">
-                        <i class="bi bi-bell me-2"></i>Subscribe to Alerts
+                    <button class="btn btn-success w-100" @onclick="SubscribeToAlerts" disabled="@isSubscribing">
+                        @if (isSubscribing)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            <span>Subscribing...</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-bell me-2"></i>
+                            <span>Subscribe to Alerts</span>
+                        }
                     </button>
+
+                    @if (!string.IsNullOrEmpty(subscriptionMessage))
+                    {
+                        <div class="alert @(subscriptionSuccess ? "alert-success" : "alert-danger") mt-3" role="alert">
+                            <i class="bi @(subscriptionSuccess ? "bi-check-circle" : "bi-exclamation-triangle") me-2"></i>
+                            @subscriptionMessage
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -106,6 +129,11 @@
     private List<DisasterAlert> activeAlerts = new();
     private string selectedDistrict = "all";
     private string contactEmail = "";
+
+    // Subscription state
+    private bool isSubscribing = false;
+    private string subscriptionMessage = "";
+    private bool subscriptionSuccess = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -207,32 +235,8 @@
     {
         try
         {
-            // In a real app, fetch from backend
-            // Simulate fetching alerts for demo purposes
-            var alertTypes = new[] { "Earthquake", "Flood", "Landslide", "Avalanche", "GLOF" };
-            var districts = new[] { "Gilgit", "Skardu", "Hunza", "Astore", "Ghanche", "Ghizer", "Nagar", "Shigar" };
-            var severities = new[] { "Warning", "Watch", "Emergency", "Advisory" };
-
-            var random = new Random();
-            activeAlerts.Clear();
-
-            // Generate 0-3 random alerts
-            var alertCount = random.Next(4);
-            for (var i = 0; i < alertCount; i++)
-            {
-                var alertType = alertTypes[random.Next(alertTypes.Length)];
-                var district = districts[random.Next(districts.Length)];
-                var severity = severities[random.Next(severities.Length)];
-
-                activeAlerts.Add(new DisasterAlert
-                    {
-                        Type = alertType,
-                        Area = district,
-                        Severity = severity,
-                        Message = $"{severity} for {alertType} in {district} district. Take appropriate precautions.",
-                        Time = DateTime.Now.AddMinutes(-random.Next(60))
-                    });
-            }
+            // Load real alerts from database
+            activeAlerts = await _alertService.GetActiveAlertsAsync();
 
             // Update map markers
             await UpdateAlertMarkers();
@@ -248,32 +252,113 @@
         var random = new Random();
         var alertTypes = new[] { "Earthquake", "Flood", "Landslide", "Avalanche", "GLOF" };
         var districts = new[] { "Gilgit", "Skardu", "Hunza", "Astore", "Ghanche", "Ghizer", "Nagar", "Shigar" };
-        var severities = new[] { "Warning", "Emergency" };
 
         var alertType = alertTypes[random.Next(alertTypes.Length)];
         var district = districts[random.Next(districts.Length)];
-        var severity = severities[random.Next(severities.Length)];
+        var riskScore = random.Next(60, 95); // Generate medium to critical risk
 
-        var newAlert = new DisasterAlert
-            {
-                Type = alertType,
-                Area = district,
-                Severity = severity,
-                Message = $"{severity}: {alertType} detected in {district}. Take immediate precautions.",
-                Time = DateTime.Now
-            };
+        try
+        {
+            // Create alert using the alert service
+            var newAlert = await _alertService.CreateAlertFromRiskAssessmentAsync(
+                alertType,
+                district,
+                riskScore,
+                "{}",
+                "Manual Simulation"
+            );
 
-        activeAlerts.Add(newAlert);
-
-        // Update map
-        await UpdateAlertMarkers();
+            // Refresh alerts to show the new one
+            await RefreshAlerts();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating simulated alert: {ex.Message}");
+        }
     }
 
     private async Task SubscribeToAlerts()
     {
-        // This would save the subscription to the database in a real app
-        // For now, we'll just show a confirmation
-        await JS.InvokeVoidAsync("alert", $"Successfully subscribed to alerts for {selectedDistrict}");
+        // Clear previous messages
+        subscriptionMessage = "";
+        subscriptionSuccess = false;
+
+        // Validate email
+        if (string.IsNullOrWhiteSpace(contactEmail))
+        {
+            subscriptionMessage = "Please enter a valid email address.";
+            subscriptionSuccess = false;
+            return;
+        }
+
+        if (!IsValidEmail(contactEmail))
+        {
+            subscriptionMessage = "Please enter a valid email address format.";
+            subscriptionSuccess = false;
+            return;
+        }
+
+        try
+        {
+            isSubscribing = true;
+            StateHasChanged();
+
+            // Check if already subscribed
+            var isAlreadySubscribed = await _subscriptionRepository.IsEmailSubscribedAsync(contactEmail, selectedDistrict);
+            if (isAlreadySubscribed)
+            {
+                subscriptionMessage = $"You are already subscribed to alerts for {(selectedDistrict == "all" ? "all districts" : selectedDistrict + " district")}.";
+                subscriptionSuccess = false;
+                return;
+            }
+
+            // Save subscription to database
+            var subscription = new AlertSubscription
+            {
+                Email = contactEmail,
+                District = selectedDistrict,
+                SubscribedAt = DateTime.Now,
+                IsActive = true
+            };
+
+            await _subscriptionRepository.AddSubscriptionAsync(subscription);
+
+            // Send confirmation email
+            await _emailService.SendSubscriptionConfirmationAsync(contactEmail, selectedDistrict);
+
+            var areaText = selectedDistrict == "all" ? "all districts" : $"{selectedDistrict} district";
+            subscriptionMessage = $"Successfully subscribed to alerts for {areaText}! A confirmation email has been sent to {contactEmail}.";
+            subscriptionSuccess = true;
+
+            // Clear the form
+            contactEmail = "";
+            selectedDistrict = "all";
+        }
+        catch (Exception ex)
+        {
+            subscriptionMessage = $"Failed to subscribe to alerts. Please try again. Error: {ex.Message}";
+            subscriptionSuccess = false;
+        }
+        finally
+        {
+            isSubscribing = false;
+            StateHasChanged();
+        }
+    }
+
+
+
+    private bool IsValidEmail(string email)
+    {
+        try
+        {
+            var addr = new System.Net.Mail.MailAddress(email);
+            return addr.Address == email;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private string GetAlertClass(string severity)
@@ -333,13 +418,5 @@
         };
     }
 
-    // Data model
-    public class DisasterAlert
-    {
-        public string Type { get; set; }
-        public string Severity { get; set; }
-        public string Area { get; set; }
-        public string Message { get; set; }
-        public DateTime Time { get; set; }
-    }
+
 }

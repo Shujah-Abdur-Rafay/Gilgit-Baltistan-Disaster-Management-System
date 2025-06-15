@@ -6,6 +6,24 @@
 <div class="container inventory-container">
     <h2 class="text-center mb-4 text-success">Relief Supplies Inventory</h2>
 
+    <!-- District Selection -->
+    <div class="row mb-4">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <label class="form-label fw-bold">Select District</label>
+                    <select class="form-select border-success" @bind="selectedDistrict" @bind:after="OnDistrictChanged">
+                        <option value="">All Districts</option>
+                        @foreach (var district in districts)
+                        {
+                            <option value="@district">@district</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row mb-4">
         <div class="col-12 d-flex justify-content-center">
             <div class="btn-group">
@@ -33,7 +51,7 @@
             <div class="col-md-8">
                 <div class="card inventory-card">
                     <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Inventory Summary</h5>
+                        <h5 class="mb-0">Inventory Summary @(string.IsNullOrEmpty(selectedDistrict) ? "(All Districts)" : $"({selectedDistrict})")</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -134,6 +152,10 @@
                             <tr>
                                 <th>Name</th>
                                 <th>Category</th>
+                                @if (string.IsNullOrEmpty(selectedDistrict))
+                                {
+                                    <th>District</th>
+                                }
                                 <th>Quantity</th>
                                 <th>Status</th>
                                 <th>Actions</th>
@@ -146,6 +168,10 @@
                                 <tr>
                                     <td>@item.Name</td>
                                     <td>@item.Category</td>
+                                    @if (string.IsNullOrEmpty(selectedDistrict))
+                                    {
+                                        <td>@item.District</td>
+                                    }
                                     <td>@item.Quantity @item.Unit</td>
                                     <td><span class="badge bg-@status.Color">@status.Text</span></td>
                                     <td>
@@ -186,6 +212,15 @@
                                 }
                             </select>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">District</label>
+                            <select class="form-select" @bind="newItem.District">
+                                @foreach (var district in districts)
+                                {
+                                    <option value="@district">@district</option>
+                                }
+                            </select>
+                        </div>
                         <div class="row mb-3">
                             <div class="col-6">
                                 <label class="form-label">Quantity</label>
@@ -218,15 +253,19 @@
     private string statusType = "success";
     private string inventorySearchTerm = "";
     private string inventoryCategoryFilter = "";
+    private string selectedDistrict = "";
     private bool showNewItemModal = false;
-    
+
     // Data models - initialize with empty collections to avoid null reference exceptions
     private List<InventoryItem> inventoryItems = new List<InventoryItem>();
     private readonly List<string> inventoryCategories = new List<string> {
         "Food", "Water", "Shelter", "Clothing", "Medicine", "Hygiene", "Tools", "Other"
     };
-    private InventoryItem newItem = new InventoryItem { 
-        LastUpdated = DateTime.Now 
+    private readonly List<string> districts = new List<string> {
+        "Gilgit", "Skardu", "Hunza", "Astore", "Ghanche", "Ghizer", "Nagar", "Shigar"
+    };
+    private InventoryItem newItem = new InventoryItem {
+        LastUpdated = DateTime.Now
     };
 
     protected override async Task OnInitializedAsync()
@@ -262,39 +301,57 @@
         {
             new InventoryItem
             {
-                ItemCode = "F001", Name = "Rice (5kg bag)", Category = "Food", 
-                Quantity = 250, Unit = "bags", MinimumLevel = 100, 
-                LastUpdated = DateTime.Now.AddDays(-5)
+                ItemCode = "F001", Name = "Rice (5kg bag)", Category = "Food",
+                Quantity = 250, Unit = "bags", MinimumLevel = 100,
+                District = "Gilgit", LastUpdated = DateTime.Now.AddDays(-5)
             },
             new InventoryItem
             {
-                ItemCode = "F002", Name = "Flour (10kg bag)", Category = "Food", 
-                Quantity = 180, Unit = "bags", MinimumLevel = 80, 
-                LastUpdated = DateTime.Now.AddDays(-3)
+                ItemCode = "F002", Name = "Flour (10kg bag)", Category = "Food",
+                Quantity = 180, Unit = "bags", MinimumLevel = 80,
+                District = "Skardu", LastUpdated = DateTime.Now.AddDays(-3)
             },
             new InventoryItem
             {
-                ItemCode = "W001", Name = "Drinking Water (1.5L)", Category = "Water", 
-                Quantity = 1500, Unit = "bottles", MinimumLevel = 500, 
-                LastUpdated = DateTime.Now.AddDays(-2)
+                ItemCode = "W001", Name = "Drinking Water (1.5L)", Category = "Water",
+                Quantity = 1500, Unit = "bottles", MinimumLevel = 500,
+                District = "Gilgit", LastUpdated = DateTime.Now.AddDays(-2)
             },
             new InventoryItem
             {
-                ItemCode = "S001", Name = "Tents (4-person)", Category = "Shelter", 
-                Quantity = 80, Unit = "tents", MinimumLevel = 50, 
-                LastUpdated = DateTime.Now.AddDays(-15)
+                ItemCode = "S001", Name = "Tents (4-person)", Category = "Shelter",
+                Quantity = 80, Unit = "tents", MinimumLevel = 50,
+                District = "Hunza", LastUpdated = DateTime.Now.AddDays(-15)
             },
             new InventoryItem
             {
-                ItemCode = "M001", Name = "First Aid Kits", Category = "Medicine", 
-                Quantity = 95, Unit = "kits", MinimumLevel = 50, 
-                LastUpdated = DateTime.Now.AddDays(-8)
+                ItemCode = "M001", Name = "First Aid Kits", Category = "Medicine",
+                Quantity = 95, Unit = "kits", MinimumLevel = 50,
+                District = "Astore", LastUpdated = DateTime.Now.AddDays(-8)
             },
             new InventoryItem
             {
-                ItemCode = "F003", Name = "Ready-to-eat Meals", Category = "Food", 
-                Quantity = 0, Unit = "packs", MinimumLevel = 200, 
-                LastUpdated = DateTime.Now.AddDays(-1)
+                ItemCode = "F003", Name = "Ready-to-eat Meals", Category = "Food",
+                Quantity = 0, Unit = "packs", MinimumLevel = 200,
+                District = "Ghanche", LastUpdated = DateTime.Now.AddDays(-1)
+            },
+            new InventoryItem
+            {
+                ItemCode = "W002", Name = "Water Purification Tablets", Category = "Water",
+                Quantity = 500, Unit = "tablets", MinimumLevel = 200,
+                District = "Ghizer", LastUpdated = DateTime.Now.AddDays(-4)
+            },
+            new InventoryItem
+            {
+                ItemCode = "S002", Name = "Blankets", Category = "Shelter",
+                Quantity = 150, Unit = "pieces", MinimumLevel = 100,
+                District = "Nagar", LastUpdated = DateTime.Now.AddDays(-6)
+            },
+            new InventoryItem
+            {
+                ItemCode = "M002", Name = "Emergency Medicine Kit", Category = "Medicine",
+                Quantity = 75, Unit = "kits", MinimumLevel = 50,
+                District = "Shigar", LastUpdated = DateTime.Now.AddDays(-10)
             }
         };
 
@@ -307,11 +364,13 @@
     }
 
     private IEnumerable<InventoryItem> FilteredInventoryItems => inventoryItems
-        .Where(i => string.IsNullOrEmpty(inventorySearchTerm) || 
-            i.Name.Contains(inventorySearchTerm, StringComparison.OrdinalIgnoreCase) || 
+        .Where(i => string.IsNullOrEmpty(inventorySearchTerm) ||
+            i.Name.Contains(inventorySearchTerm, StringComparison.OrdinalIgnoreCase) ||
             i.ItemCode.Contains(inventorySearchTerm, StringComparison.OrdinalIgnoreCase))
         .Where(i => string.IsNullOrEmpty(inventoryCategoryFilter) || i.Category == inventoryCategoryFilter)
-        .OrderBy(i => i.Category)
+        .Where(i => string.IsNullOrEmpty(selectedDistrict) || i.District == selectedDistrict)
+        .OrderBy(i => i.District)
+        .ThenBy(i => i.Category)
         .ThenBy(i => i.Name);
 
     private void SetActiveTab(string tab)
@@ -336,11 +395,18 @@
         inventoryCategoryFilter = "";
     }
 
+    private async Task OnDistrictChanged()
+    {
+        // Refresh the view when district changes
+        StateHasChanged();
+    }
+
     private void ShowNewItemModal()
     {
         newItem = new InventoryItem
         {
             Category = inventoryCategories[0],
+            District = string.IsNullOrEmpty(selectedDistrict) ? districts[0] : selectedDistrict,
             LastUpdated = DateTime.Now
         };
         showNewItemModal = true;
@@ -354,19 +420,26 @@
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(newItem.District))
+        {
+            ShowMessage("District is required", "danger");
+            return;
+        }
+
         try {
-            // Generate item code based on category
+            // Generate item code based on category and district
             var categoryPrefix = newItem.Category.Substring(0, 1);
-            var itemsInCategory = inventoryItems.Count(i => i.Category == newItem.Category);
-            newItem.ItemCode = $"{categoryPrefix}{(itemsInCategory + 1):D03}";
+            var districtPrefix = newItem.District.Substring(0, 2).ToUpper();
+            var itemsInCategoryAndDistrict = inventoryItems.Count(i => i.Category == newItem.Category && i.District == newItem.District);
+            newItem.ItemCode = $"{districtPrefix}-{categoryPrefix}{(itemsInCategoryAndDistrict + 1):D03}";
             newItem.LastUpdated = DateTime.Now;
-            
+
             await _inventoryRepository.CreateAsync(newItem);
-            
+
             // Refresh inventory items
             inventoryItems = (await _inventoryRepository.GetAllAsync()).ToList();
-            
-            ShowMessage($"Added new item: {newItem.Name}");
+
+            ShowMessage($"Added new item: {newItem.Name} in {newItem.District}");
             showNewItemModal = false;
         }
         catch (Exception ex) {
@@ -393,7 +466,11 @@
     // Helper methods
     private int GetTotalAvailableByCategory(string category)
     {
-        return inventoryItems.Where(i => i.Category == category).Sum(i => i.Quantity);
+        var filteredItems = string.IsNullOrEmpty(selectedDistrict)
+            ? inventoryItems.Where(i => i.Category == category)
+            : inventoryItems.Where(i => i.Category == category && i.District == selectedDistrict);
+
+        return filteredItems.Sum(i => i.Quantity);
     }
 
     private (string Color, string Text) GetCategoryStatus(int available)

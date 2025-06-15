@@ -31,6 +31,8 @@
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
         <ApplicationVersion>1</ApplicationVersion>
 
+
+
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">14.2</SupportedOSPlatformVersion>
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">14.0</SupportedOSPlatformVersion>
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
@@ -59,9 +61,9 @@
 
     <ItemGroup>
         <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
-        <PackageReference Include="bootstrap-map-js" Version="1.0.0" />
-        <PackageReference Include="dymaptic.GeoBlazor.Core" Version="3.2.2-beta-2" />
-        <PackageReference Include="Esri.TagHelpers" Version="1.2.3" />
+        <!-- <PackageReference Include="bootstrap-map-js" Version="1.0.0" /> -->
+        <!-- <PackageReference Include="dymaptic.GeoBlazor.Core" Version="3.2.2-beta-2" /> -->
+        <!-- <PackageReference Include="Esri.TagHelpers" Version="1.2.3" /> -->
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
         <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.3" />
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
@@ -71,11 +73,13 @@
         <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
         <PackageReference Include="SQLiteNetExtensions" Version="2.1.0" />
         <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.8" />
+
+        <!-- Email Service -->
+        <PackageReference Include="MailKit" Version="4.3.0" />
+        <PackageReference Include="MimeKit" Version="4.3.0" />
+
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="bin\Debug\net8.0-windows10.0.19041.0\win10-x64\AppX\wwwroot\NewFolder1\" />
-      <Folder Include="bin\Debug\net8.0-windows10.0.19041.0\win10-x64\AppX\wwwroot\NewFolder\" />
-    </ItemGroup>
+
 
 </Project>

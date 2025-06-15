@@ -12,5 +12,7 @@ namespace GBDMS.Repository.IRepository
         Task<IEnumerable<InventoryItem>> GetAllAsync();
         Task<InventoryItem?> UpdateAsync(InventoryItem item);
         Task<IEnumerable<InventoryItem>> GetItemsByCategoryAsync(string category);
+        Task<IEnumerable<InventoryItem>> GetItemsByDistrictAsync(string district);
+        Task<IEnumerable<InventoryItem>> GetItemsByDistrictAndCategoryAsync(string district, string category);
     }
-} 
+}

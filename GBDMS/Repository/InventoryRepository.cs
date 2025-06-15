@@ -51,6 +51,7 @@ namespace GBDMS.Repository
             objFromDb.Unit = obj.Unit;
             objFromDb.MinimumLevel = obj.MinimumLevel;
             objFromDb.LastUpdated = obj.LastUpdated;
+            objFromDb.District = obj.District;
 
             await _localDbService.GetConnection().UpdateAsync(objFromDb);
             return objFromDb;
@@ -63,5 +64,21 @@ namespace GBDMS.Repository
                 .Where(i => i.Category == category)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<InventoryItem>> GetItemsByDistrictAsync(string district)
+        {
+            return await _localDbService.GetConnection()
+                .Table<InventoryItem>()
+                .Where(i => i.District == district)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<InventoryItem>> GetItemsByDistrictAndCategoryAsync(string district, string category)
+        {
+            return await _localDbService.GetConnection()
+                .Table<InventoryItem>()
+                .Where(i => i.District == district && i.Category == category)
+                .ToListAsync();
+        }
     }
-} 
+}

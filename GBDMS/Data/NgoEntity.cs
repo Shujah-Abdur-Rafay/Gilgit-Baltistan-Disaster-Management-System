@@ -34,12 +34,12 @@ namespace GBDMS.Data
         public string SecondaryFocusAreasString { get; set; } = "";
 
         [Ignore]
-        public List<string> SecondaryFocusAreas 
-        { 
-            get => string.IsNullOrEmpty(SecondaryFocusAreasString) 
-                ? new List<string>() 
-                : SecondaryFocusAreasString.Split(',').ToList();
-            set => SecondaryFocusAreasString = string.Join(",", value);
+        public List<string> SecondaryFocusAreas
+        {
+            get => string.IsNullOrEmpty(SecondaryFocusAreasString)
+                ? new List<string>()
+                : SecondaryFocusAreasString.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+            set => SecondaryFocusAreasString = value != null ? string.Join(",", value) : "";
         }
 
         [Column("ContactPhone")]

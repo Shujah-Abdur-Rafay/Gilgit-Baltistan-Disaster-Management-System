@@ -1,4 +1,9 @@
 ﻿@page "/videos"
+@using GBDMS.Models
+@using GBDMS.Repository.IRepository
+@using Microsoft.JSInterop
+@inject ISurvivalGuidelineRepository _guidelineRepository
+@inject IJSRuntime _JS
 
 <div class="container-fluid p-0">
     <div class="page-header bg-white shadow-sm text-center p-4 mb-4">
@@ -11,25 +16,108 @@
     </div>
 
     <main class="container py-4">
-        <div class="row g-4">
-            @foreach (var video in new[]
-            {
-            new { VideoUrl = "https://www.youtube.com/embed/3m2qQY7yQYU", Title = "Survival in a Landslide" },
-            new { VideoUrl = "https://www.youtube.com/embed/rV1iqRD9EKY", Title = "Flood Survival Guidelines" },
-            new { VideoUrl = "https://www.youtube.com/embed/BDPbtP-0AW8", Title = "Flood Survival: A Glimpse" },
-            new { VideoUrl = "https://www.youtube.com/embed/r5EbbrVXoQw", Title = "Earthquake Survival Tips" },
-            new { VideoUrl = "https://www.youtube.com/embed/RnCCqHOiX5Q", Title = "Avalanche Survival Guidelines" },
-            new { VideoUrl = "https://www.youtube.com/embed/ypbPzX5eQss", Title = "How to Survive Forest Fire" },
-            new { VideoUrl = "https://www.youtube.com/embed/h8HPzyZPyL0", Title = "How to Survive Heavy Snowfall" },
-            new { VideoUrl = "https://www.youtube.com/embed/cNNcinKe55o", Title = "How to Survive Heavy Wind" }
-            })
-            {
-                <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                    <div class="card h-100 shadow-sm">
-                        <iframe class="card-img-top" src="@video.VideoUrl" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                        <div class="card-body">
-                            <h5 class="card-title">@video.Title</h5>
+        <!-- Add New Guideline Button -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <button class="btn btn-success" @onclick="ShowAddForm">
+                    <i class="fas fa-plus"></i> Add New Guideline
+                </button>
+            </div>
+        </div>
+
+        <!-- Add/Edit Form Modal -->
+        @if (showForm)
+        {
+            <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">@(isEditing ? "Edit" : "Add") Survival Guideline</h5>
+                            <button type="button" class="btn-close" @onclick="HideForm"></button>
                         </div>
+                        <div class="modal-body">
+                            <EditForm Model="currentGuideline" OnValidSubmit="SaveGuideline">
+                                <DataAnnotationsValidator />
+                                <ValidationSummary class="text-danger" />
+
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">Title</label>
+                                    <InputText id="title" class="form-control" @bind-Value="currentGuideline.Title" placeholder="Enter guideline title" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="videoUrl" class="form-label">Video URL</label>
+                                    <InputText id="videoUrl" class="form-control" @bind-Value="currentGuideline.VideoUrl" placeholder="Enter YouTube embed URL" />
+                                    <div class="form-text">Use YouTube embed URL format: https://www.youtube.com/embed/VIDEO_ID</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="category" class="form-label">Category</label>
+                                    <InputSelect id="category" class="form-select" @bind-Value="currentGuideline.Category">
+                                        <option value="">Select Category</option>
+                                        <option value="Earthquake">Earthquake</option>
+                                        <option value="Flood">Flood</option>
+                                        <option value="Landslide">Landslide</option>
+                                        <option value="Avalanche">Avalanche</option>
+                                        <option value="Forest Fire">Forest Fire</option>
+                                        <option value="Heavy Snowfall">Heavy Snowfall</option>
+                                        <option value="Heavy Wind">Heavy Wind</option>
+                                        <option value="GLOF">GLOF</option>
+                                        <option value="General">General</option>
+                                    </InputSelect>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    <InputTextArea id="description" class="form-control" rows="4" @bind-Value="currentGuideline.Description" placeholder="Enter detailed description of the survival guideline" />
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" @onclick="HideForm">Cancel</button>
+                                    <button type="submit" class="btn btn-success">@(isEditing ? "Update" : "Save")</button>
+                                </div>
+                            </EditForm>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Guidelines Grid -->
+        <div class="row g-4">
+            @if (guidelines != null && guidelines.Any())
+            {
+                @foreach (var guideline in guidelines)
+                {
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                        <div class="card h-100 shadow-sm">
+                            <iframe class="card-img-top" src="@guideline.VideoUrl" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                            <div class="card-body">
+                                <h5 class="card-title">@guideline.Title</h5>
+                                @if (!string.IsNullOrEmpty(guideline.Category))
+                                {
+                                    <span class="badge bg-secondary mb-2">@guideline.Category</span>
+                                }
+                                <p class="card-text">@guideline.Description</p>
+                                <div class="btn-group w-100" role="group">
+                                    <button class="btn btn-outline-primary btn-sm" @onclick="() => EditGuideline(guideline)">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteGuideline(guideline.Id)">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <div class="alert alert-info text-center">
+                        <h4>No Survival Guidelines Found</h4>
+                        <p>Click "Add New Guideline" to create your first survival guideline.</p>
                     </div>
                 </div>
             }
@@ -39,6 +127,164 @@
 
 <style>
     .forest-green-bg {
-        background-color: #228B22; /* Forest Green color */
+        background-color: #388E65; /* Updated darker green color */
     }
 </style>
+
+@code {
+    private List<SurvivalGuideline> guidelines = new();
+    private SurvivalGuideline currentGuideline = new();
+    private bool showForm = false;
+    private bool isEditing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadGuidelines();
+        await SeedInitialData(); // Add some initial data if none exists
+    }
+
+    private async Task LoadGuidelines()
+    {
+        guidelines = await _guidelineRepository.GetActiveAsync();
+        StateHasChanged();
+    }
+
+    private void ShowAddForm()
+    {
+        currentGuideline = new SurvivalGuideline();
+        isEditing = false;
+        showForm = true;
+    }
+
+    private void EditGuideline(SurvivalGuideline guideline)
+    {
+        currentGuideline = new SurvivalGuideline
+        {
+            Id = guideline.Id,
+            Title = guideline.Title,
+            VideoUrl = guideline.VideoUrl,
+            Description = guideline.Description,
+            Category = guideline.Category,
+            CreatedAt = guideline.CreatedAt,
+            CreatedBy = guideline.CreatedBy
+        };
+        isEditing = true;
+        showForm = true;
+    }
+
+    private void HideForm()
+    {
+        showForm = false;
+        currentGuideline = new SurvivalGuideline();
+        isEditing = false;
+    }
+
+    private async Task SaveGuideline()
+    {
+        try
+        {
+            if (isEditing)
+            {
+                await _guidelineRepository.UpdateAsync(currentGuideline);
+                await _JS.InvokeVoidAsync("alert", "Guideline updated successfully!");
+            }
+            else
+            {
+                await _guidelineRepository.CreateAsync(currentGuideline);
+                await _JS.InvokeVoidAsync("alert", "Guideline added successfully!");
+            }
+
+            await LoadGuidelines();
+            HideForm();
+        }
+        catch (Exception ex)
+        {
+            await _JS.InvokeVoidAsync("alert", $"Error saving guideline: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteGuideline(int id)
+    {
+        var confirmed = await _JS.InvokeAsync<bool>("confirm", "Are you sure you want to delete this guideline?");
+        if (confirmed)
+        {
+            try
+            {
+                await _guidelineRepository.DeleteAsync(id);
+                await _JS.InvokeVoidAsync("alert", "Guideline deleted successfully!");
+                await LoadGuidelines();
+            }
+            catch (Exception ex)
+            {
+                await _JS.InvokeVoidAsync("alert", $"Error deleting guideline: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task SeedInitialData()
+    {
+        var existingGuidelines = await _guidelineRepository.GetAllAsync();
+        if (!existingGuidelines.Any())
+        {
+            var initialGuidelines = new List<SurvivalGuideline>
+            {
+                new SurvivalGuideline
+                {
+                    Title = "Survival in a Landslide",
+                    VideoUrl = "https://www.youtube.com/embed/3m2qQY7yQYU",
+                    Description = "Learn essential techniques for surviving landslide situations and protecting yourself from debris.",
+                    Category = "Landslide"
+                },
+                new SurvivalGuideline
+                {
+                    Title = "Flood Survival Guidelines",
+                    VideoUrl = "https://www.youtube.com/embed/rV1iqRD9EKY",
+                    Description = "Comprehensive guide on how to survive floods, including evacuation procedures and safety measures.",
+                    Category = "Flood"
+                },
+                new SurvivalGuideline
+                {
+                    Title = "Earthquake Survival Tips",
+                    VideoUrl = "https://www.youtube.com/embed/r5EbbrVXoQw",
+                    Description = "Critical survival techniques during earthquakes, including drop, cover, and hold procedures.",
+                    Category = "Earthquake"
+                },
+                new SurvivalGuideline
+                {
+                    Title = "Avalanche Survival Guidelines",
+                    VideoUrl = "https://www.youtube.com/embed/RnCCqHOiX5Q",
+                    Description = "Essential knowledge for surviving avalanche situations in mountainous regions.",
+                    Category = "Avalanche"
+                },
+                new SurvivalGuideline
+                {
+                    Title = "How to Survive Forest Fire",
+                    VideoUrl = "https://www.youtube.com/embed/ypbPzX5eQss",
+                    Description = "Safety procedures and evacuation strategies during forest fire emergencies.",
+                    Category = "Forest Fire"
+                },
+                new SurvivalGuideline
+                {
+                    Title = "How to Survive Heavy Snowfall",
+                    VideoUrl = "https://www.youtube.com/embed/h8HPzyZPyL0",
+                    Description = "Winter survival techniques and preparation for heavy snowfall conditions.",
+                    Category = "Heavy Snowfall"
+                },
+                new SurvivalGuideline
+                {
+                    Title = "How to Survive Heavy Wind",
+                    VideoUrl = "https://www.youtube.com/embed/cNNcinKe55o",
+                    Description = "Protection strategies and safety measures during severe wind storms.",
+                    Category = "Heavy Wind"
+                }
+            };
+
+            foreach (var guideline in initialGuidelines)
+            {
+                await _guidelineRepository.CreateAsync(guideline);
+            }
+
+            await LoadGuidelines();
+        }
+    }
+}
