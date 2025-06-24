@@ -1,13 +1,42 @@
 ﻿body {
 }
 
-/* General Styles */
+/* Enhanced Header Styles */
 .page-header {
-    margin-bottom: 20px;
-    border-bottom: 2px solid #198754;
-    padding-bottom: 10px;
+    border-bottom: 3px solid #388E65 !important;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+.page-header h1 {
+    color: #388E65;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.text-medium {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.section-header {
+    background-color: #388E65;
+    color: white;
+    padding: 1rem 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.forest-green-bg {
+    background-color: #388E65;
+}
+
+.section-header h2 {
+    color: white !important;
+    font-weight: bold;
+}
+
+/* General Styles */
 .page-header h2 {
     color: #155724;
     margin-bottom: 5px;

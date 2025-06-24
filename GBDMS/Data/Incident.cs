@@ -39,5 +39,8 @@ namespace GBDMS.Data
 
         [Column("CreatedDate")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        [Column("ReportedDate")]
+        public DateTime ReportedDate { get; set; } = DateTime.Now;
     }
-} 
+}

@@ -1,0 +1,109 @@
+/* Admin Dashboard Styles */
+
+.admin-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out;
+}
+
+.admin-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.admin-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.stat-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-item small {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.forest-green-bg {
+    background-color: #388E65 !important;
+}
+
+.page-header {
+    background-color: #f8f9fa;
+}
+
+.section-header {
+    background: linear-gradient(135deg, #388E65 0%, #2d6e3e 100%);
+}
+
+/* Button Styles */
+.btn-outline-primary:hover,
+.btn-outline-warning:hover,
+.btn-outline-danger:hover,
+.btn-outline-info:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Card Header Styles */
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .admin-icon {
+        font-size: 2rem;
+    }
+    
+    .card-title {
+        font-size: 0.9rem;
+    }
+    
+    .h3 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Animation for cards */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.admin-card {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+/* Custom spacing */
+.d-grid.gap-2 > .btn {
+    margin-bottom: 0.5rem;
+}
+
+.d-grid.gap-2 > .btn:last-child {
+    margin-bottom: 0;
+}

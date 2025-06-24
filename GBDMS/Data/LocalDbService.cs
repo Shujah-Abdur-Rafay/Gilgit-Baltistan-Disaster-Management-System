@@ -23,6 +23,7 @@ namespace GBDMS.Data
             _connection.CreateTableAsync<AlertSubscription>();
             _connection.CreateTableAsync<DisasterAlert>();
             _connection.CreateTableAsync<SurvivalGuideline>();
+            _connection.CreateTableAsync<ContactMessage>();
         }
         public SQLiteAsyncConnection GetConnection() => _connection;
 

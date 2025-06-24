@@ -4,6 +4,8 @@
 @using Microsoft.JSInterop
 @inject ISurvivalGuidelineRepository _guidelineRepository
 @inject IJSRuntime _JS
+@inject GBDMS.Services.AuthenticationService AuthService
+@inject GBDMS.Services.ToastService ToastService
 
 <div class="container-fluid p-0">
     <div class="page-header bg-white shadow-sm text-center p-4 mb-4">
@@ -16,14 +18,17 @@
     </div>
 
     <main class="container py-4">
-        <!-- Add New Guideline Button -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <button class="btn btn-success" @onclick="ShowAddForm">
-                    <i class="fas fa-plus"></i> Add New Guideline
-                </button>
+        <!-- Add New Guideline Button - Only for Super Admin -->
+        @if (AuthService.IsSuperAdmin)
+        {
+            <div class="row mb-4">
+                <div class="col-12">
+                    <button class="btn btn-success" @onclick="ShowAddForm">
+                        <i class="fas fa-plus"></i> Add New Guideline
+                    </button>
+                </div>
             </div>
-        </div>
+        }
 
         <!-- Add/Edit Form Modal -->
         @if (showForm)
@@ -99,14 +104,18 @@
                                     <span class="badge bg-secondary mb-2">@guideline.Category</span>
                                 }
                                 <p class="card-text">@guideline.Description</p>
-                                <div class="btn-group w-100" role="group">
-                                    <button class="btn btn-outline-primary btn-sm" @onclick="() => EditGuideline(guideline)">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </button>
-                                    <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteGuideline(guideline.Id)">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </button>
-                                </div>
+                                @if (AuthService.IsSuperAdmin)
+                                {
+                                    <div class="btn-group w-100" role="group">
+                                        <button class="btn btn-outline-primary btn-sm" @onclick="() => EditGuideline(guideline)">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteGuideline(guideline.Id)">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                }
+
                             </div>
                         </div>
                     </div>
@@ -156,6 +165,8 @@
         showForm = true;
     }
 
+
+
     private void EditGuideline(SurvivalGuideline guideline)
     {
         currentGuideline = new SurvivalGuideline
@@ -186,12 +197,12 @@
             if (isEditing)
             {
                 await _guidelineRepository.UpdateAsync(currentGuideline);
-                await _JS.InvokeVoidAsync("alert", "Guideline updated successfully!");
+                await ToastService.ShowSuccess("Guideline updated successfully!");
             }
             else
             {
                 await _guidelineRepository.CreateAsync(currentGuideline);
-                await _JS.InvokeVoidAsync("alert", "Guideline added successfully!");
+                await ToastService.ShowSuccess("Guideline added successfully!");
             }
 
             await LoadGuidelines();
@@ -199,7 +210,7 @@
         }
         catch (Exception ex)
         {
-            await _JS.InvokeVoidAsync("alert", $"Error saving guideline: {ex.Message}");
+            await ToastService.ShowError($"Error saving guideline: {ex.Message}");
         }
     }
 
@@ -211,12 +222,12 @@
             try
             {
                 await _guidelineRepository.DeleteAsync(id);
-                await _JS.InvokeVoidAsync("alert", "Guideline deleted successfully!");
+                await ToastService.ShowSuccess("Guideline deleted successfully!");
                 await LoadGuidelines();
             }
             catch (Exception ex)
             {
-                await _JS.InvokeVoidAsync("alert", $"Error deleting guideline: {ex.Message}");
+                await ToastService.ShowError($"Error deleting guideline: {ex.Message}");
             }
         }
     }

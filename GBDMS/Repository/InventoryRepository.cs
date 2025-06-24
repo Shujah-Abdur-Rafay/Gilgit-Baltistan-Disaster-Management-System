@@ -30,7 +30,7 @@ namespace GBDMS.Repository
             return true;
         }
 
-        public async Task<InventoryItem> GetAsync(int id)
+        public async Task<InventoryItem?> GetAsync(int id)
         {
             return await _localDbService.GetConnection().FindAsync<InventoryItem>(id);
         }
@@ -40,7 +40,7 @@ namespace GBDMS.Repository
             return await _localDbService.GetConnection().Table<InventoryItem>().ToListAsync();
         }
 
-        public async Task<InventoryItem> UpdateAsync(InventoryItem obj)
+        public async Task<InventoryItem?> UpdateAsync(InventoryItem obj)
         {
             var objFromDb = await _localDbService.GetConnection().FindAsync<InventoryItem>(obj.Id);
             if (objFromDb == null) return null;

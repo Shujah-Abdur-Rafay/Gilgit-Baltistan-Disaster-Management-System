@@ -377,3 +377,28 @@ label {
         max-width: 800px;
     }
 }
+
+/* Login Modal Priority Override */
+.login-modal {
+    z-index: 999999 !important;
+}
+
+.login-modal .modal-backdrop {
+    z-index: 999998 !important;
+}
+
+.login-modal .modal-dialog {
+    z-index: 999999 !important;
+}
+
+.login-modal .modal-content {
+    z-index: 999999 !important;
+}
+
+/* Bottom-left positioning for login modal */
+.login-modal .modal-dialog-bottom-left {
+    position: fixed !important;
+    bottom: 20px !important;
+    left: 20px !important;
+    z-index: 999999 !important;
+}

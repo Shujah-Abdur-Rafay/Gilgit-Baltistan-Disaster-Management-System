@@ -221,9 +221,9 @@ namespace GBDMS.Services.ModelService
             int trees = 100,
             double testSize = 0.3,
             bool confusionMatrix = true,
-            Action<string> progressCallback = null)
+            Action<string>? progressCallback = null)
         {
-            string workingCopy = null;
+            string? workingCopy = null;
             
             try
             {
@@ -605,7 +605,7 @@ namespace GBDMS.Services.ModelService
         /// <summary>
         /// Get the web-accessible path for a visualization file
         /// </summary>
-        public string GetVisualizationUrl(string filePath)
+        public string? GetVisualizationUrl(string? filePath)
         {
             if (string.IsNullOrEmpty(filePath))
                 return null;

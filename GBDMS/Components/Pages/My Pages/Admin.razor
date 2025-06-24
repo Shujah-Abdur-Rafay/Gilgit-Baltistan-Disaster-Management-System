@@ -1,0 +1,727 @@
+@page "/admin"
+@inject IJSRuntime JS
+@inject IUserRepository UserRepository
+@inject IIncidentRepository IncidentRepository
+@inject IAlertRepository AlertRepository
+@inject IContactMessageRepository ContactRepository
+@inject GBDMS.Services.ToastService ToastService
+@inject GBDMS.Services.AuthenticationService AuthService
+@inject NavigationManager Navigation
+@using GBDMS.Data
+@using GBDMS.Models
+@using GBDMS.Repository
+@using GBDMS.Repository.IRepository
+
+<link rel="stylesheet" href="css/pages/admin.css" />
+
+@if (!AuthService.IsSuperAdmin)
+{
+    <div class="container-fluid p-0">
+        <div class="alert alert-danger text-center m-4">
+            <h4>Access Denied</h4>
+            <p>You need Super Admin privileges to access this page.</p>
+            <button class="btn btn-primary" @onclick="GoToHome">Go to Home</button>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container-fluid p-0">
+        <div class="page-header bg-white shadow-sm text-center p-4 mb-4">
+            <h1 class="mb-2">Admin Dashboard</h1>
+            <p class="text-medium mb-0">Gilgit Baltistan Disaster Management System</p>
+        </div>
+
+    <div class="section-header forest-green-bg text-light text-center py-4 mb-4">
+        <h2 class="mb-0">SYSTEM ADMINISTRATION</h2>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- System Overview Cards -->
+            <div class="col-md-3 mb-4">
+                <div class="card admin-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-people-fill admin-icon text-primary"></i>
+                        <h5 class="card-title">Total Users</h5>
+                        <h3 class="text-primary">@totalUsers</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-4">
+                <div class="card admin-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-exclamation-triangle-fill admin-icon text-warning"></i>
+                        <h5 class="card-title">Active Incidents</h5>
+                        <h3 class="text-warning">@activeIncidents</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-4">
+                <div class="card admin-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-bell-fill admin-icon text-danger"></i>
+                        <h5 class="card-title">Active Alerts</h5>
+                        <h3 class="text-danger">@activeAlerts</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-4">
+                <div class="card admin-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-shield-check admin-icon text-success"></i>
+                        <h5 class="card-title">System Status</h5>
+                        <h3 class="text-success">Online</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Actions -->
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-envelope me-2"></i>Contact Us Messages</h5>
+                        <span class="badge bg-primary">@unreadContactCount</span>
+                    </div>
+                    <div class="card-body">
+                        @if (contactMessages != null && contactMessages.Any())
+                        {
+                            <div class="contact-messages-list" style="max-height: 400px; overflow-y: auto;">
+                                @foreach (var message in contactMessages.Take(5))
+                                {
+                                    <div class="card mb-2 @(message.IsRead ? "" : "border-primary")">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="mb-0">@message.FullName</h6>
+                                                <small class="text-muted">@message.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                            </div>
+                                            <p class="mb-1 small text-muted">@message.Email | @message.ContactNumber</p>
+                                            <p class="mb-2">@(message.Remarks.Length > 100 ? message.Remarks.Substring(0, 100) + "..." : message.Remarks)</p>
+                                            <div class="d-flex gap-1">
+                                                @if (!message.IsRead)
+                                                {
+                                                    <button class="btn btn-sm btn-outline-primary" @onclick="() => MarkAsRead(message.Id)">
+                                                        <i class="bi bi-check"></i> Mark Read
+                                                    </button>
+                                                }
+                                                <button class="btn btn-sm btn-outline-info" @onclick="() => ViewMessage(message)">
+                                                    <i class="bi bi-eye"></i> View
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            @if (contactMessages.Count() > 5)
+                            {
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-outline-primary" @onclick="ViewAllMessages">
+                                        View All Messages (@contactMessages.Count())
+                                    </button>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center text-muted">
+                                <i class="bi bi-inbox display-4"></i>
+                                <p class="mt-2">No contact messages yet</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Quick Stats</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="stat-item">
+                                    <small class="text-muted">New Users Today</small>
+                                    <div class="h4">@newUsersToday</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-item">
+                                    <small class="text-muted">Incidents This Week</small>
+                                    <div class="h4">@incidentsThisWeek</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-item">
+                                    <small class="text-muted">Alerts Sent</small>
+                                    <div class="h4">@alertsSent</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-item">
+                                    <small class="text-muted">System Uptime</small>
+                                    <div class="h4">99.9%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Management Toggle Button -->
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <button class="btn btn-success btn-lg" @onclick="ToggleAdminManagement">
+                    <i class="bi bi-shield-lock me-2"></i>
+                    @if (showAdminManagement)
+                    {
+                        <span>Hide Admin Management</span>
+                    }
+                    else
+                    {
+                        <span>Add Admin</span>
+                    }
+                </button>
+            </div>
+        </div>
+
+        <!-- Admin Management Section -->
+        @if (showAdminManagement)
+        {
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-shield-lock me-2"></i>Admin Management</h5>
+                            <button class="btn btn-success btn-sm" @onclick="ShowAddAdminForm">
+                                <i class="bi bi-plus me-1"></i>Add New Admin
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            @if (showAddAdminForm)
+                            {
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <div class="card bg-light">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Add New Admin</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <div class="form-group mb-3">
+                                                            <label for="newAdminUsername">Username</label>
+                                                            <input type="text" id="newAdminUsername" class="form-control" @bind="newAdmin.Username" placeholder="Enter username" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="form-group mb-3">
+                                                            <label for="newAdminEmail">Email</label>
+                                                            <input type="email" id="newAdminEmail" class="form-control" @bind="newAdmin.Email" placeholder="Enter email" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="form-group mb-3">
+                                                            <label for="newAdminPassword">Password</label>
+                                                            <input type="password" id="newAdminPassword" class="form-control" @bind="newAdmin.Password" placeholder="Enter password" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex gap-2">
+                                                    <button class="btn btn-success" @onclick="AddAdmin">
+                                                        <i class="bi bi-check me-1"></i>Add Admin
+                                                    </button>
+                                                    <button class="btn btn-secondary" @onclick="CancelAddAdmin">
+                                                        <i class="bi bi-x me-1"></i>Cancel
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Username</th>
+                                            <th>Email</th>
+                                            <th>Created Date</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (adminUsers != null && adminUsers.Any())
+                                        {
+                                            @foreach (var admin in adminUsers)
+                                            {
+                                                <tr>
+                                                    <td>@admin.Id</td>
+                                                    <td>
+                                                        @if (editingAdminId == admin.Id)
+                                                        {
+                                                            <input type="text" class="form-control form-control-sm" @bind="editingAdmin.Username" />
+                                                        }
+                                                        else
+                                                        {
+                                                            @admin.Username
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        @if (editingAdminId == admin.Id)
+                                                        {
+                                                            <input type="email" class="form-control form-control-sm" @bind="editingAdmin.Email" />
+                                                        }
+                                                        else
+                                                        {
+                                                            @admin.Email
+                                                        }
+                                                    </td>
+                                                    <td>@admin.CreatedDate.ToString("yyyy-MM-dd")</td>
+                                                    <td>
+                                                        <span class="badge @(admin.IsActive ? "bg-success" : "bg-danger")">
+                                                            @(admin.IsActive ? "Active" : "Inactive")
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        @if (editingAdminId == admin.Id)
+                                                        {
+                                                            <button class="btn btn-success btn-sm me-1" @onclick="SaveAdminEdit">
+                                                                <i class="bi bi-check"></i>
+                                                            </button>
+                                                            <button class="btn btn-secondary btn-sm" @onclick="CancelAdminEdit">
+                                                                <i class="bi bi-x"></i>
+                                                            </button>
+                                                        }
+                                                        else
+                                                        {
+                                                            <button class="btn btn-primary btn-sm me-1" @onclick="() => StartEditAdmin(admin)">
+                                                                <i class="bi bi-pencil"></i>
+                                                            </button>
+                                                            <button class="btn btn-warning btn-sm me-1" @onclick="() => ToggleAdminStatus(admin)">
+                                                                <i class="bi @(admin.IsActive ? "bi-pause" : "bi-play")"></i>
+                                                            </button>
+                                                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteAdmin(admin.Id)">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="6" class="text-center">No admin users found</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+}
+
+<style>
+    .forest-green-bg {
+        background-color: #388E65;
+    }
+</style>
+
+@code {
+    private int totalUsers = 0;
+    private int activeIncidents = 0;
+    private int activeAlerts = 0;
+    private int newUsersToday = 0;
+    private int incidentsThisWeek = 0;
+    private int alertsSent = 0;
+
+    // Contact messages
+    private IEnumerable<ContactMessage> contactMessages = new List<ContactMessage>();
+    private int unreadContactCount = 0;
+    private ContactMessage? selectedContactMessage = null;
+    private bool showContactDetailsModal = false;
+
+    // Admin management variables
+    private bool showAdminManagement = false;
+    private bool showAddAdminForm = false;
+    private List<User> adminUsers = new List<User>();
+    private User newAdmin = new User();
+    private User editingAdmin = new User();
+    private int editingAdminId = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+        await LoadAdminUsers();
+        await LoadContactMessages();
+    }
+
+    private void GoToHome()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private async Task LoadDashboardData()
+    {
+        try
+        {
+            // Load user statistics
+            var users = await UserRepository.GetAllAsync();
+            totalUsers = users.Count();
+            
+            // Load incident statistics
+            var incidents = await IncidentRepository.GetAllAsync();
+            activeIncidents = incidents.Count(i => i.Status == "Active" || i.Status == "In Progress");
+            incidentsThisWeek = incidents.Count(i => i.ReportedDate >= DateTime.Now.AddDays(-7));
+            
+            // Load alert statistics
+            var alerts = await AlertRepository.GetAllAsync();
+            activeAlerts = alerts.Count(a => a.IsActive);
+            alertsSent = alerts.Count();
+            
+            // Calculate new users today
+            newUsersToday = users.Count(u => u.CreatedDate.Date == DateTime.Today);
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("console.error", $"Error loading dashboard data: {ex.Message}");
+        }
+    }
+
+    // Contact Messages Methods
+    private async Task LoadContactMessages()
+    {
+        try
+        {
+            contactMessages = await ContactRepository.GetAllAsync();
+            unreadContactCount = await ContactRepository.GetUnreadCountAsync();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("console.error", $"Error loading contact messages: {ex.Message}");
+        }
+    }
+
+    private async Task MarkAsRead(int messageId)
+    {
+        try
+        {
+            var message = await ContactRepository.GetAsync(messageId);
+            if (message != null)
+            {
+                message.IsRead = true;
+                await ContactRepository.UpdateAsync(message);
+                await LoadContactMessages();
+                await ToastService.ShowSuccess("Message marked as read");
+            }
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowError($"Error marking message as read: {ex.Message}");
+        }
+    }
+
+    private async Task ViewMessage(ContactMessage message)
+    {
+        selectedContactMessage = message;
+        showContactDetailsModal = true;
+
+        if (!message.IsRead)
+        {
+            await MarkAsRead(message.Id);
+        }
+    }
+
+    private void CloseContactDetailsModal()
+    {
+        selectedContactMessage = null;
+        showContactDetailsModal = false;
+    }
+
+    private async Task ViewAllMessages()
+    {
+        await ToastService.ShowInfo("Full contact message management feature coming soon!");
+    }
+
+    // Admin Management Methods
+    private async Task LoadAdminUsers()
+    {
+        try
+        {
+            var admins = await UserRepository.GetUsersByRoleAsync("Admin");
+            adminUsers = admins.ToList();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("console.error", $"Error loading admin users: {ex.Message}");
+        }
+    }
+
+    private void ToggleAdminManagement()
+    {
+        showAdminManagement = !showAdminManagement;
+        // If showing admin management, also show the add admin form by default
+        if (showAdminManagement && !showAddAdminForm)
+        {
+            showAddAdminForm = true;
+            newAdmin = new User { Role = "Admin" };
+        }
+    }
+
+    private void ShowAddAdminForm()
+    {
+        showAddAdminForm = true;
+        newAdmin = new User { Role = "Admin" };
+    }
+
+    private void CancelAddAdmin()
+    {
+        showAddAdminForm = false;
+        newAdmin = new User();
+    }
+
+    private async Task AddAdmin()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(newAdmin.Username) ||
+                string.IsNullOrWhiteSpace(newAdmin.Email) ||
+                string.IsNullOrWhiteSpace(newAdmin.Password))
+            {
+                await ToastService.ShowError("Please fill in all required fields.");
+                return;
+            }
+
+            // Check if email already exists
+            var existingUser = await UserRepository.GetUserByEmailAsync(newAdmin.Email);
+            if (existingUser != null)
+            {
+                await ToastService.ShowError("A user with this email already exists.");
+                return;
+            }
+
+            // Hash password and set role
+            newAdmin.Password = BCrypt.Net.BCrypt.HashPassword(newAdmin.Password);
+            newAdmin.Role = "Admin";
+            newAdmin.IsActive = true;
+            newAdmin.CreatedDate = DateTime.Now;
+
+            await UserRepository.CreateAsync(newAdmin);
+            await LoadAdminUsers();
+            await LoadDashboardData(); // Refresh dashboard stats
+
+            showAddAdminForm = false;
+            newAdmin = new User();
+
+            await ToastService.ShowSuccess("Admin user created successfully!");
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowError($"Error creating admin: {ex.Message}");
+        }
+    }
+
+    private void StartEditAdmin(User admin)
+    {
+        editingAdminId = admin.Id;
+        editingAdmin = new User
+        {
+            Id = admin.Id,
+            Username = admin.Username,
+            Email = admin.Email,
+            Role = admin.Role,
+            IsActive = admin.IsActive
+        };
+    }
+
+    private void CancelAdminEdit()
+    {
+        editingAdminId = 0;
+        editingAdmin = new User();
+    }
+
+    private async Task SaveAdminEdit()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(editingAdmin.Username) ||
+                string.IsNullOrWhiteSpace(editingAdmin.Email))
+            {
+                await ToastService.ShowError("Username and email are required.");
+                return;
+            }
+
+            // Keep the original password if not changed
+            var originalAdmin = adminUsers.FirstOrDefault(a => a.Id == editingAdminId);
+            if (originalAdmin != null)
+            {
+                editingAdmin.Password = originalAdmin.Password;
+            }
+
+            await UserRepository.UpdateAsync(editingAdmin);
+            await LoadAdminUsers();
+
+            editingAdminId = 0;
+            editingAdmin = new User();
+
+            await ToastService.ShowSuccess("Admin updated successfully!");
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowError($"Error updating admin: {ex.Message}");
+        }
+    }
+
+    private async Task ToggleAdminStatus(User admin)
+    {
+        try
+        {
+            admin.IsActive = !admin.IsActive;
+            await UserRepository.UpdateAsync(admin);
+            await LoadAdminUsers();
+
+            string status = admin.IsActive ? "activated" : "deactivated";
+            await ToastService.ShowSuccess($"Admin {status} successfully!");
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowError($"Error updating admin status: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteAdmin(int adminId)
+    {
+        try
+        {
+            bool confirmed = await JS.InvokeAsync<bool>("confirm", "Are you sure you want to delete this admin? This action cannot be undone.");
+            if (confirmed)
+            {
+                await UserRepository.DeleteAsync(adminId);
+                await LoadAdminUsers();
+                await LoadDashboardData(); // Refresh dashboard stats
+
+                await ToastService.ShowSuccess("Admin deleted successfully!");
+            }
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowError($"Error deleting admin: {ex.Message}");
+        }
+    }
+}
+
+<!-- Contact Message Details Modal -->
+@if (showContactDetailsModal && selectedContactMessage != null)
+{
+    <div class="modal fade show" style="display: block; z-index: 1050;" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-envelope-open me-2"></i>
+                        Contact Message Details
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CloseContactDetailsModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="contact-detail-card">
+                                <div class="contact-detail-header">
+                                    <i class="bi bi-person-fill text-success me-2"></i>
+                                    <strong>FULL NAME</strong>
+                                </div>
+                                <div class="contact-detail-content">
+                                    @selectedContactMessage.FullName
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="contact-detail-card">
+                                <div class="contact-detail-header">
+                                    <i class="bi bi-envelope-fill text-success me-2"></i>
+                                    <strong>EMAIL ADDRESS</strong>
+                                </div>
+                                <div class="contact-detail-content">
+                                    @selectedContactMessage.Email
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="contact-detail-card">
+                                <div class="contact-detail-header">
+                                    <i class="bi bi-telephone-fill text-success me-2"></i>
+                                    <strong>CONTACT NUMBER</strong>
+                                </div>
+                                <div class="contact-detail-content">
+                                    @selectedContactMessage.ContactNumber
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="contact-detail-card">
+                                <div class="contact-detail-header">
+                                    <i class="bi bi-calendar-fill text-success me-2"></i>
+                                    <strong>DATE RECEIVED</strong>
+                                </div>
+                                <div class="contact-detail-content">
+                                    @selectedContactMessage.CreatedAt.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <div class="contact-detail-card">
+                                <div class="contact-detail-header">
+                                    <i class="bi bi-chat-text-fill text-success me-2"></i>
+                                    <strong>MESSAGE</strong>
+                                </div>
+                                <div class="contact-detail-content message-content">
+                                    @selectedContactMessage.Remarks
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="contact-detail-card">
+                                <div class="contact-detail-header">
+                                    <i class="bi bi-info-circle-fill text-success me-2"></i>
+                                    <strong>STATUS</strong>
+                                </div>
+                                <div class="contact-detail-content">
+                                    <span class="badge bg-success">@selectedContactMessage.Status</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseContactDetailsModal">
+                        <i class="bi bi-x-circle me-2"></i>Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}

@@ -60,6 +60,11 @@
         // Hash the password using bcrypt
         User.Password = BCrypt.Net.BCrypt.HashPassword(User.Password);
 
+        // Set default values for new properties
+        User.Role = "User"; // Default role
+        User.IsActive = true;
+        User.CreatedDate = DateTime.Now;
+
         try
         {
             var createdUser = await _userRepository.CreateAsync(User);

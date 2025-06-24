@@ -28,7 +28,14 @@ namespace GBDMS.Data
         [Required]
         public string Password { get; set; }
 
-        
+        [Column("Role")]
+        public string Role { get; set; } = "User"; // Default role is "User", can be "Admin"
+
+        [Column("CreatedDate")]
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        [Column("IsActive")]
+        public bool IsActive { get; set; } = true;
     }
 }
 

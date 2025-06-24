@@ -19,14 +19,21 @@
 @inject PythonModelExecutor ModelExecutor
 @inject ILogger<Model> Logger
 @inject IAlertService _alertService
+@inject GBDMS.Services.ToastService ToastService
 
 <link href="~/css/pages/model.css" rel="stylesheet" />
 
-<div class="container-fluid">
-    <div class="page-header mb-4">
-        <h2 class="text-success">Disaster Risk Analysis Model</h2>
-        <p class="text-muted">Analyze disaster risk data using machine learning</p>
+<div class="container-fluid p-0">
+    <div class="page-header bg-white shadow-sm text-center p-4 mb-4">
+        <h1 class="mb-2">Gilgit Baltistan Disaster Management System</h1>
+        <p class="text-medium mb-0">Gilgit-Baltistan, Pakistan</p>
     </div>
+
+    <div class="section-header forest-green-bg text-light text-center py-4 mb-4">
+        <h2 class="mb-0">DISASTER RISK ANALYSIS MODEL</h2>
+    </div>
+
+<div class="container-fluid">
     
     <div class="row">
         <!-- Left Panel: Controls and Settings -->
@@ -648,6 +655,7 @@
         </div>
     </div>
 </div>
+</div>
 
 @code {
     // File upload and dataset properties
@@ -1137,6 +1145,15 @@
             errorMessage = "";
 
             var file = e.File;
+
+            // Validate file extension
+            var fileExtension = Path.GetExtension(file.Name).ToLowerInvariant();
+            if (fileExtension != ".csv")
+            {
+                await ToastService.ShowError("Please upload a CSV format file only. Other file formats are not supported.");
+                return;
+            }
+
             datasetName = file.Name;
 
             // Close any existing file handles
@@ -1162,12 +1179,14 @@
             await LoadDatasetPreview();
 
             AddLog("Dataset uploaded successfully: " + datasetName);
+            await ToastService.ShowSuccess("CSV file uploaded successfully!");
         }
         catch (Exception ex)
         {
             errorMessage = "Error loading dataset: " + ex.Message;
             Logger.LogError(ex, "Error loading dataset");
             datasetName = "";
+            await ToastService.ShowError("Error loading dataset: " + ex.Message);
         }
     }
 

@@ -33,6 +33,7 @@ namespace GBDMS
             builder.Services.AddScoped<IAlertSubscriptionRepository, AlertSubscriptionRepository>();
             builder.Services.AddScoped<IAlertRepository, AlertRepository>();
             builder.Services.AddScoped<ISurvivalGuidelineRepository, SurvivalGuidelineRepository>();
+            builder.Services.AddScoped<IContactMessageRepository, ContactMessageRepository>();
 
             // Register model execution service
             builder.Services.AddScoped<PythonModelExecutor>();
@@ -52,9 +53,25 @@ namespace GBDMS
             // Register email test service for verification
             builder.Services.AddScoped<EmailTestService>();
 
+            // Register authentication service
+            builder.Services.AddScoped<GBDMS.Services.AuthenticationService>();
+
+            // Register toast service
+            builder.Services.AddScoped<ToastService>();
+
 #if DEBUG
-            builder.Services.AddBlazorWebViewDeveloperTools();
-            builder.Logging.AddDebug();
+            // Only add developer tools if explicitly requested
+            var enableDevTools = Environment.GetEnvironmentVariable("ENABLE_DEV_TOOLS");
+            if (enableDevTools == "true")
+            {
+                builder.Services.AddBlazorWebViewDeveloperTools();
+                builder.Logging.AddDebug();
+            }
+            else
+            {
+                // Use minimal logging to reduce debugger conflicts
+                builder.Logging.SetMinimumLevel(LogLevel.Warning);
+            }
 #endif
 
             return builder.Build();

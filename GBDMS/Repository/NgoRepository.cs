@@ -30,7 +30,7 @@ namespace GBDMS.Repository
             return true;
         }
 
-        public async Task<NgoEntity> GetAsync(int id)
+        public async Task<NgoEntity?> GetAsync(int id)
         {
             return await _localDbService.GetConnection().FindAsync<NgoEntity>(id);
         }
@@ -40,7 +40,7 @@ namespace GBDMS.Repository
             return await _localDbService.GetConnection().Table<NgoEntity>().ToListAsync();
         }
 
-        public async Task<NgoEntity> UpdateAsync(NgoEntity obj)
+        public async Task<NgoEntity?> UpdateAsync(NgoEntity obj)
         {
             var objFromDb = await _localDbService.GetConnection().FindAsync<NgoEntity>(obj.Id);
             if (objFromDb == null) return null;

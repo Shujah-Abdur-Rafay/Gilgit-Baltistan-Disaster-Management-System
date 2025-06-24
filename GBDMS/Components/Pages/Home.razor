@@ -1,5 +1,7 @@
 ﻿@page "/"
 @page "/home"
+@inject GBDMS.Services.AuthenticationService AuthService
+@inject IJSRuntime JS
 
 <link rel="stylesheet" href="css/pages/home.css" />
 
@@ -11,10 +13,20 @@
                 Advanced disaster assessment and risk monitoring for critical infrastructure
                 using state-of-the-art satellite imagery and AI-powered analysis.
             </p>
-            <div class="hero-buttons">
-                <a href="/riskatlas" class="btn btn-success btn-lg">Explore Risk Atlas</a>
-                <a href="/response" class="btn btn-outline-success btn-lg">Emergency Response</a>
-            </div>
+            @if (AuthService.IsPrivileged)
+            {
+                <div class="hero-buttons">
+                    <a href="/riskatlas" class="btn btn-success btn-lg">Explore Risk Atlas</a>
+                    <a href="/response" class="btn btn-outline-success btn-lg">Emergency Response</a>
+                </div>
+            }
+            else
+            {
+                <div class="hero-buttons">
+                    <button class="btn btn-success btn-lg" @onclick='() => ShowAccessPrompt("home_advanced")'>Explore Risk Atlas</button>
+                    <button class="btn btn-outline-success btn-lg" @onclick='() => ShowAccessPrompt("home_advanced")'>Emergency Response</button>
+                </div>
+            }
         </div>
         <div class="hero-image">
             <img src="images/gbdms-logo.png" alt="GBDMS Logo" class="gb-map-img" />
@@ -99,6 +111,9 @@
         </div>
     </section>
 
+    <!-- Dashboard Stats -->
+    <DashboardStats />
+
     <section class="mission-section">
         <div class="mission-content">
             <h2 class="section-title">Our Mission</h2>
@@ -141,12 +156,22 @@
         <h2>Ready to enhance your disaster monitoring capabilities?</h2>
         <p>Explore our comprehensive suite of tools designed for disaster management and infrastructure protection in Gilgit-Baltistan.</p>
         <div class="cta-buttons">
-            <a href="/model" class="btn btn-success btn-lg">Try Our AI Model</a>
+            @if (AuthService.IsPrivileged)
+            {
+                <a href="/model" class="btn btn-success btn-lg">Try Our AI Model</a>
+            }
+            else
+            {
+                <button class="btn btn-success btn-lg" @onclick='() => ShowAccessPrompt("model")'>Try Our AI Model</button>
+            }
             <a href="/contact" class="btn btn-outline-success btn-lg">Contact Us</a>
         </div>
     </section>
 </div>
 
 @code {
-    // Component code would go here
+    private async Task ShowAccessPrompt(string feature)
+    {
+        await AuthService.CheckAccessAndPromptAsync(feature);
+    }
 }

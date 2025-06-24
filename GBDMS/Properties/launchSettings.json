@@ -3,6 +3,20 @@
     "Windows Machine": {
       "commandName": "MsixPackage",
       "nativeDebugging": false
+    },
+    "Windows Machine (No Debugger)": {
+      "commandName": "MsixPackage",
+      "nativeDebugging": false,
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    },
+    "Windows Machine (Dev Tools)": {
+      "commandName": "MsixPackage",
+      "nativeDebugging": false,
+      "environmentVariables": {
+        "ENABLE_DEV_TOOLS": "true"
+      }
     }
   }
 }

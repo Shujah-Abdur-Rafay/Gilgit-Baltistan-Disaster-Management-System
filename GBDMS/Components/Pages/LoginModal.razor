@@ -1,0 +1,241 @@
+@using GBDMS.Services
+@inject AuthenticationService AuthService
+@inject ToastService ToastService
+
+<div class="modal fade login-modal @(IsVisible ? "show" : "")" style="display: @(IsVisible ? "block" : "none")" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-bottom-left" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-shield-lock me-2"></i>
+                    Admin Login
+                </h5>
+                <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
+            </div>
+            <div class="modal-body">
+                <form @onsubmit="HandleLogin" @onsubmit:preventDefault="true">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">
+                            <i class="bi bi-envelope me-2"></i>
+                            Email Address
+                        </label>
+                        <input type="email" 
+                               class="form-control" 
+                               id="email" 
+                               @bind="Email" 
+                               placeholder="Enter your email"
+                               required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">
+                            <i class="bi bi-lock me-2"></i>
+                            Password
+                        </label>
+                        <input type="password" 
+                               class="form-control" 
+                               id="password" 
+                               @bind="Password" 
+                               placeholder="Enter your password"
+                               required />
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success" disabled="@IsLoading">
+                            @if (IsLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                <span>Logging in...</span>
+                            }
+                            else
+                            {
+                                <i class="bi bi-box-arrow-in-right me-2"></i>
+                                <span>Login</span>
+                            }
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" @onclick="CloseModal">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+    [Parameter] public EventCallback OnLoginSuccess { get; set; }
+
+    private string Email = "";
+    private string Password = "";
+    private bool IsLoading = false;
+
+    private async Task HandleLogin()
+    {
+        if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
+        {
+            await ToastService.ShowError("Please enter both email and password");
+            return;
+        }
+
+        IsLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var success = await AuthService.LoginAsync(Email, Password);
+            
+            if (success)
+            {
+                await ToastService.ShowSuccess("Login successful!");
+                await CloseModal();
+                await OnLoginSuccess.InvokeAsync();
+            }
+            else
+            {
+                await ToastService.ShowError("Invalid email or password");
+            }
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowError($"Login failed: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CloseModal()
+    {
+        IsVisible = false;
+        Email = "";
+        Password = "";
+        IsLoading = false;
+        await IsVisibleChanged.InvokeAsync(IsVisible);
+    }
+}
+
+<style>
+    .modal {
+        background-color: transparent !important;
+        z-index: 99999 !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        pointer-events: none !important;
+    }
+
+    .modal .modal-dialog {
+        pointer-events: auto !important;
+    }
+
+    .modal-backdrop {
+        z-index: 99998 !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background-color: rgba(0, 0, 0, 0.3) !important;
+        pointer-events: auto !important;
+    }
+
+    .modal-dialog {
+        z-index: 100000 !important;
+        position: relative;
+    }
+
+    .modal-dialog-bottom-left {
+        position: fixed !important;
+        bottom: 20px !important;
+        left: 20px !important;
+        margin: 0 !important;
+        width: 400px !important;
+        max-width: 90vw !important;
+        z-index: 100001 !important;
+        animation: slideInFromBottom 0.3s ease-out !important;
+    }
+
+    @@keyframes slideInFromBottom {
+        from {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* Mobile responsive design */
+    @@media (max-width: 768px) {
+        .modal-dialog-bottom-left {
+            bottom: 10px !important;
+            left: 10px !important;
+            right: 10px !important;
+            width: auto !important;
+            max-width: none !important;
+        }
+    }
+
+    /* Ensure login modal is always on top */
+    .login-modal {
+        z-index: 999999 !important;
+    }
+
+    .login-modal .modal-dialog {
+        z-index: 999999 !important;
+    }
+
+    .login-modal .modal-content {
+        z-index: 999999 !important;
+    }
+
+    .modal-content {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        position: relative;
+        z-index: 100002 !important;
+        border: 2px solid rgba(56, 142, 101, 0.3);
+        backdrop-filter: blur(10px);
+    }
+    
+    .modal-header {
+        border-radius: 12px 12px 0 0;
+        border-bottom: none;
+    }
+    
+    .form-control {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        padding: 12px 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+    
+    .btn {
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-success:hover {
+        background-color: #218838;
+        transform: translateY(-1px);
+    }
+</style>

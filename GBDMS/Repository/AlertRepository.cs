@@ -25,6 +25,14 @@ namespace GBDMS.Repository
             return await database.InsertAsync(alert);
         }
 
+        public async Task<List<DisasterAlert>> GetAllAsync()
+        {
+            var database = await _dbService.GetDatabaseAsync();
+            return await database.Table<DisasterAlert>()
+                .OrderByDescending(a => a.Time)
+                .ToListAsync();
+        }
+
         public async Task<List<DisasterAlert>> GetActiveAlertsAsync()
         {
             var database = await _dbService.GetDatabaseAsync();

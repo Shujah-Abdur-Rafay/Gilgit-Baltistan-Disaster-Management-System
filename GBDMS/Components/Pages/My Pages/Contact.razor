@@ -1,5 +1,9 @@
 ﻿@page "/contact"
 @using Microsoft.AspNetCore.Components
+@using GBDMS.Models
+@using GBDMS.Repository.IRepository
+@inject IContactMessageRepository ContactRepository
+@inject GBDMS.Services.ToastService ToastService
 
 <div class="page-header bg-white shadow-sm text-center p-4 mb-4">
     <h1 class="mb-2">Gilgit Baltistan Disaster Management System</h1>
@@ -12,35 +16,50 @@
 
 <div class="container mt-4">
     <div class="card mx-auto shadow p-4" style="max-width: 500px;">
-        <div class="form-group">
-            <label for="fullName">Full Name</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-person"></i></span>
-                <input type="text" id="fullName" class="form-control" placeholder="Full Name">
+        <EditForm Model="contactMessage" OnValidSubmit="HandleSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger mb-3" />
+
+            <div class="form-group">
+                <label for="fullName">Full Name</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                    <InputText id="fullName" class="form-control" @bind-Value="contactMessage.FullName" placeholder="Full Name" />
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label for="email">E-mail</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                <input type="email" id="email" class="form-control" placeholder="E-mail">
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                    <InputText type="email" id="email" class="form-control" @bind-Value="contactMessage.Email" placeholder="E-mail" />
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label for="contactNumber">Contact Number</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                <input type="text" id="contactNumber" class="form-control" placeholder="Contact Number">
+            <div class="form-group">
+                <label for="contactNumber">Contact Number</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                    <InputText id="contactNumber" class="form-control" @bind-Value="contactMessage.ContactNumber" placeholder="Contact Number" />
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label for="remarks">Remarks</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-chat-text"></i></span>
-                <textarea id="remarks" class="form-control" placeholder="Remarks" rows="4"></textarea>
+            <div class="form-group">
+                <label for="remarks">Remarks</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-chat-text"></i></span>
+                    <InputTextArea id="remarks" class="form-control" @bind-Value="contactMessage.Remarks" placeholder="Remarks" rows="4" />
+                </div>
             </div>
-        </div>
-        <button class="btn btn-primary w-100">Send Message</button>
+            <button type="submit" class="btn btn-primary w-100" disabled="@isSubmitting">
+                @if (isSubmitting)
+                {
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    <span>Sending...</span>
+                }
+                else
+                {
+                    <span>Send Message</span>
+                }
+            </button>
+        </EditForm>
     </div>
 </div>
 
@@ -49,3 +68,36 @@
         background-color: #388E65; /* Updated darker green color */
     }
 </style>
+
+@code {
+    private ContactMessage contactMessage = new();
+    private bool isSubmitting = false;
+
+    private async Task HandleSubmit()
+    {
+        isSubmitting = true;
+        StateHasChanged();
+
+        try
+        {
+            contactMessage.CreatedAt = DateTime.Now;
+            contactMessage.Status = "New";
+            contactMessage.IsRead = false;
+
+            await ContactRepository.CreateAsync(contactMessage);
+            await ToastService.ShowSuccess("Your message has been sent successfully! We will get back to you soon.");
+
+            // Reset form
+            contactMessage = new ContactMessage();
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowError($"Failed to send message: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+}

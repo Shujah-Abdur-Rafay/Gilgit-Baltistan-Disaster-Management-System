@@ -1,4 +1,7 @@
 ﻿@page "/test"
+@inject GBDMS.Services.AuthenticationService AuthService
+@inject GBDMS.Services.ToastService ToastService
+@inject IJSRuntime JS
 @using System
 @using System.Collections.Generic
 @using System.Linq
@@ -76,38 +79,76 @@
     .card-text {
         font-size: 1.1rem;
     }
+
+    .forest-green-bg {
+        background-color: #388E65; /* Updated darker green color */
+    }
+
+    .section-header h2 {
+        color: white !important;
+        font-weight: bold;
+    }
+
+    .page-header {
+        border-bottom: 3px solid #388E65;
+    }
+
+    .page-header h1 {
+        color: #388E65;
+        font-weight: bold;
+    }
+
+    .text-medium {
+        color: #666;
+        font-size: 1.1rem;
+    }
 </style>
 
-<header class="header">
-    <h1>Disaster Management System</h1>
-    <p>Gilgit-Baltistan, Pakistan</p>
-</header>
+<div class="container-fluid p-0">
+    <div class="page-header bg-white shadow-sm text-center p-4 mb-4">
+        <h1 class="mb-2">Gilgit Baltistan Disaster Management System</h1>
+        <p class="text-medium mb-0">Gilgit-Baltistan, Pakistan</p>
+    </div>
 
-<div class="green-strip">
-    <a href="/forecast" class="green-strip-btn btn">Weather Forecast</a>
-    <a href="/warning" class="green-strip-btn btn">Weather Alerts</a>
+    <div class="section-header forest-green-bg text-light text-center py-4 mb-4">
+        <h2 class="mb-0">DISASTER MANAGEMENT FACILITIES</h2>
+    </div>
 </div>
 
 <main class="container my-4">
     <div class="row g-4">
-        @foreach (var card in Cards)
+        @foreach (var card in GetVisibleCards())
         {
             <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <NavLink class="text-decoration-none" href="@card.Route">
-                    <div class="card h-100 shadow-sm border-0">
-                        <img src="@card.Img" class="card-img-top" alt="@card.Title">
-                        <div class="card-body text-center">
-                            <p class="card-text text-dark fw-bold">@card.Title</p>
+                @if (IsCardAccessible(card.Route))
+                {
+                    <NavLink class="text-decoration-none" href="@card.Route">
+                        <div class="card h-100 shadow-sm border-0">
+                            <img src="@card.Img" class="card-img-top" alt="@card.Title">
+                            <div class="card-body text-center">
+                                <p class="card-text text-dark fw-bold">@GetCardDisplayTitle(card.Title, card.Route)</p>
+                            </div>
+                        </div>
+                    </NavLink>
+                }
+                else
+                {
+                    <div class="text-decoration-none" style="cursor: pointer;" @onclick="() => ShowAccessPrompt(card.Route)">
+                        <div class="card h-100 shadow-sm border-0">
+                            <img src="@card.Img" class="card-img-top" alt="@card.Title">
+                            <div class="card-body text-center">
+                                <p class="card-text text-dark fw-bold">@GetCardDisplayTitle(card.Title, card.Route)</p>
+                            </div>
                         </div>
                     </div>
-                </NavLink>
+                }
             </div>
         }
     </div>
 </main>
 
 @code {
-    private List<(string Img, string Title, string Route)> Cards = new()
+    private List<(string Img, string Title, string Route)> AllCards = new()
     {
         ("https://storage.googleapis.com/a1aa/image/u8Axf4VCkxxVZibeE0qlUxhOh124Rd5ruIoenYpf3sOtqF3PB.jpg", "Hazard and Risk Atlas", "/riskatlas"),
         ("https://storage.googleapis.com/a1aa/image/wP9KKSDlizp1INjyNsvSgRIvwr1XXb3AGBRf3UYKQeQtax9TA.jpg", "Disaster Warning and Information", "/warning"),
@@ -118,4 +159,35 @@
         ("https://storage.googleapis.com/a1aa/image/23lfpsAz86wfbU9Lh2Tpg0aJtVkNceMXgysT7QPc769k1i7nA.jpg", "Damages & Losses", "/losses"),
         ("https://storage.googleapis.com/a1aa/image/RFwAAfNxHazJVixgVfCbdZrpWqWis6VBbU9Z0mqbykV4ax9TA.jpg", "NGO Mapping", "/ngo")
     };
+
+    // Cards accessible to normal users (warning info, forecast, ngo mapping)
+    private List<string> GuestAccessibleRoutes = new() { "/warning", "/forecast", "/ngo" };
+
+    private List<(string Img, string Title, string Route)> GetVisibleCards()
+    {
+        return AllCards; // Show all cards but control access
+    }
+
+    private bool IsCardAccessible(string route)
+    {
+        if (AuthService.IsPrivileged)
+            return true;
+
+        return GuestAccessibleRoutes.Contains(route);
+    }
+
+    private async Task ShowAccessPrompt(string route)
+    {
+        await ToastService.ShowInfo("This facility requires a privileged account. Please login to access advanced disaster management features.");
+    }
+
+    private string GetCardDisplayTitle(string title, string route)
+    {
+        // Add lock emoji for cards that require special access
+        if (!IsCardAccessible(route))
+        {
+            return $"{title} 🔒";
+        }
+        return title;
+    }
 }

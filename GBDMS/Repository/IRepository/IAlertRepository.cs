@@ -7,6 +7,7 @@ namespace GBDMS.Repository.IRepository
     public interface IAlertRepository
     {
         Task<int> AddAlertAsync(DisasterAlert alert);
+        Task<List<DisasterAlert>> GetAllAsync();
         Task<List<DisasterAlert>> GetActiveAlertsAsync();
         Task<List<DisasterAlert>> GetAlertsByDistrictAsync(string district);
         Task<List<DisasterAlert>> GetAlertsByTypeAsync(string type);

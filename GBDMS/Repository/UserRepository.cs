@@ -30,7 +30,7 @@ namespace GBDMS.Repository
             return true;
         }
 
-        public async Task<User> GetAsync(int id)
+        public async Task<User?> GetAsync(int id)
         {
             return await _localDbService.GetConnection().FindAsync<User>(id);
         }
@@ -40,7 +40,7 @@ namespace GBDMS.Repository
             return await _localDbService.GetConnection().Table<User>().ToListAsync();
         }
 
-       public async Task<User> UpdateAsync(User obj)
+       public async Task<User?> UpdateAsync(User obj)
         {
             var objFromDb = await _localDbService.GetConnection().FindAsync<User>(obj.Id);
             if (objFromDb == null) return null;
@@ -48,6 +48,8 @@ namespace GBDMS.Repository
             objFromDb.Username = obj.Username;
             objFromDb.Email = obj.Email;
             objFromDb.Password = obj.Password;
+            objFromDb.Role = obj.Role;
+            objFromDb.IsActive = obj.IsActive;
 
            await _localDbService.GetConnection().UpdateAsync(objFromDb);
             return objFromDb;
@@ -55,8 +57,10 @@ namespace GBDMS.Repository
 
         public async Task<IEnumerable<User>> GetUsersByRoleAsync(string role)
         {
-            // Implementation specific to roles is removed as the schema does not define roles.
-            return new List<User>();
+            return await _localDbService.GetConnection()
+                .Table<User>()
+                .Where(u => u.Role == role && u.IsActive)
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<User>> GetUsersByUsernameAsync(string username)
@@ -67,7 +71,7 @@ namespace GBDMS.Repository
                 .ToListAsync();
         }
 
-        public async Task<User> GetUserByEmailAsync(string email)
+        public async Task<User?> GetUserByEmailAsync(string email)
         {
             return await _localDbService.GetConnection()
                .Table<User>()

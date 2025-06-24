@@ -1,0 +1,228 @@
+@using GBDMS.Repository.IRepository
+@inject IUserRepository UserRepository
+@inject IIncidentRepository IncidentRepository
+@inject IAlertRepository AlertRepository
+@inject IJSRuntime JS
+
+<section class="dashboard-stats-section">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">TOTAL USERS</div>
+                <div class="stat-number">@totalUsers</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">ACTIVE INCIDENTS</div>
+                <div class="stat-number">@activeIncidents</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-bell-fill"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">ACTIVE ALERTS</div>
+                <div class="stat-number">@activeAlerts</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">SYSTEM STATUS</div>
+                <div class="stat-status online">Online</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    private int totalUsers = 0;
+    private int activeIncidents = 0;
+    private int activeAlerts = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStats();
+    }
+
+    private async Task LoadStats()
+    {
+        try
+        {
+            // Get total users
+            var users = await UserRepository.GetAllAsync();
+            totalUsers = users.Count();
+
+            // Get active incidents
+            var incidents = await IncidentRepository.GetAllAsync();
+            activeIncidents = incidents.Where(i => i.Status == "Active" || i.Status == "Open").Count();
+
+            // Get active alerts
+            var alerts = await AlertRepository.GetAllAsync();
+            activeAlerts = alerts.Where(a => a.IsActive).Count();
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("console.error", $"Error loading stats: {ex.Message}");
+        }
+    }
+}
+
+<style>
+    .dashboard-stats-section {
+        padding: 1.5rem 0;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 0.75rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.25rem;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        min-height: 80px;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .stat-card:nth-child(1) .stat-icon {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+    }
+
+    .stat-card:nth-child(2) .stat-icon {
+        background: linear-gradient(135deg, #ffc107, #e0a800);
+    }
+
+    .stat-card:nth-child(3) .stat-icon {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+    }
+
+    .stat-card:nth-child(4) .stat-icon {
+        background: linear-gradient(135deg, #28a745, #1e7e34);
+    }
+
+    .stat-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 0.2rem;
+        letter-spacing: 0.3px;
+        line-height: 1.2;
+    }
+
+    .stat-number {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #212529;
+        line-height: 1;
+    }
+
+    .stat-status {
+        font-size: 1.1rem;
+        font-weight: 600;
+        line-height: 1;
+    }
+
+    .stat-status.online {
+        color: #28a745;
+    }
+
+    @@media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .stat-card {
+            padding: 1rem;
+            min-height: 70px;
+        }
+
+        .stat-icon {
+            width: 45px;
+            height: 45px;
+            font-size: 1.1rem;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .stat-card {
+            padding: 0.875rem;
+            min-height: 65px;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+
+        .stat-number {
+            font-size: 1.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+        }
+    }
+</style>

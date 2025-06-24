@@ -157,7 +157,9 @@
     private bool isLoading = true;
 
     // API key (kept for potential future use)
+    #pragma warning disable CS0414 // Field is assigned but its value is never used
     private string apiKey = "1e4eeb5cae70d8aa48f29ac1c9d4c899";
+    #pragma warning restore CS0414
 
     // Dictionary to store district coordinates
     private readonly Dictionary<string, (double Lat, double Lon)> districtCoordinates = new()

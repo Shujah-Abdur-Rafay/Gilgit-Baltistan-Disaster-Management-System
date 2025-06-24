@@ -1,8 +1,15 @@
 window.showToastr = function (type, message) {
+    // Use our custom green toast system instead of toastr
     if (type == "success") {
-        toastr.success(message);
+        window.showToast(message, "success");
     }
     if (type == "error") {
-        toastr.error(message);
+        window.showToast(message, "error");
+    }
+    if (type == "warning") {
+        window.showToast(message, "warning");
+    }
+    if (type == "info") {
+        window.showToast(message, "info");
     }
 }
